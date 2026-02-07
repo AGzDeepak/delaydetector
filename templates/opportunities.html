@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Government Exams & Scholarships (India) · Awareness Delay{% endblock %}
+
+{% block content %}
+<div class="opportunities-container">
+  <div class="opportunities-header glass-surface">
+    <h2>Government Exams & Scholarships (India)</h2>
+    <p class="subtitle">Verified official portals with dates, eligibility, and descriptions</p>
+  </div>
+
+  <div class="filter-section">
+    <div class="filter-card glass-surface">
+      <form class="filter-form" onsubmit="return false;">
+        <div class="filter-row">
+          <input id="examSearch" class="filter-input" type="text" placeholder="Search exam or scholarship">
+          <select id="categoryFilter" class="filter-select">
+            <option value="all">All Categories</option>
+            <option value="central">Central Exams</option>
+            <option value="state">State Exams</option>
+            <option value="scholarship">Scholarships</option>
+          </select>
+          <select id="stateFilter" class="filter-select">
+            <option value="all">All India</option>
+            <option>Andhra Pradesh</option>
+            <option>Arunachal Pradesh</option>
+            <option>Assam</option>
+            <option>Bihar</option>
+            <option>Chhattisgarh</option>
+            <option>Goa</option>
+            <option>Gujarat</option>
+            <option>Haryana</option>
+            <option>Himachal Pradesh</option>
+            <option>Jharkhand</option>
+            <option>Karnataka</option>
+            <option>Kerala</option>
+            <option>Madhya Pradesh</option>
+            <option>Maharashtra</option>
+            <option>Manipur</option>
+            <option>Meghalaya</option>
+            <option>Mizoram</option>
+            <option>Nagaland</option>
+            <option>Odisha</option>
+            <option>Punjab</option>
+            <option>Rajasthan</option>
+            <option>Sikkim</option>
+            <option>Tamil Nadu</option>
+            <option>Telangana</option>
+            <option>Tripura</option>
+            <option>Uttar Pradesh</option>
+            <option>Uttarakhand</option>
+            <option>West Bengal</option>
+            <option>Andaman and Nicobar Islands</option>
+            <option>Chandigarh</option>
+            <option>Dadra and Nagar Haveli and Daman and Diu</option>
+            <option>Delhi</option>
+            <option>Jammu and Kashmir</option>
+            <option>Ladakh</option>
+            <option>Lakshadweep</option>
+            <option>Puducherry</option>
+          </select>
+          <button id="applyFilter" type="button" class="filter-btn">Apply</button>
+        </div>
+        <p class="filter-note">Search works instantly. Apply button filters by category and state.</p>
+      </form>
+    </div>
+  </div>
+
+  {% set items = [
+    {"name":"AISSEE (Sainik School Entrance Exam)","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"NTA portal for AISSEE notices and admit cards.","link":"https://exams.nta.nic.in/sainik-school-society/","logo":"https://www.nta.ac.in/favicon.ico"},
+    {"name":"Banking Exams (IBPS CRP)","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"IBPS official site for public sector banking recruitment processes.","link":"https://www.ibps.in/","logo":"https://www.ibps.in/favicon.ico"},
+    {"name":"Civil Services Examination (UPSC)","category":"central","state":"All India","apply_start":"2026-01-14","apply_end":"2026-02-03","exam_date":"2026-05-24","eligibility":"As per official notice","desc":"UPSC portal for Civil Services notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"Combined Defence Services (UPSC)","category":"central","state":"All India","apply_start":"2025-12-10","apply_end":"2025-12-30","exam_date":"2026-04-12","eligibility":"As per official notice","desc":"UPSC portal for CDS notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"CUET (UG)","category":"central","state":"All India","apply_start":"2026-01-03","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"NTA portal for CUET (UG) notices and application.","link":"https://cuet.nta.nic.in/","logo":"https://www.nta.ac.in/favicon.ico"},
+    {"name":"CSIR-UGC NET","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"NTA portal for CSIR-UGC NET notices and application.","link":"https://csirnet.nta.nic.in/","logo":"https://www.nta.ac.in/favicon.ico"},
+    {"name":"Engineering Services Examination (UPSC)","category":"central","state":"All India","apply_start":"2025-09-17","apply_end":"2025-10-07","exam_date":"2026-02-08","eligibility":"As per official notice","desc":"UPSC portal for ESE notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"Indian Forest Service (UPSC)","category":"central","state":"All India","apply_start":"2026-01-14","apply_end":"2026-02-03","exam_date":"2026-05-24","eligibility":"As per official notice","desc":"UPSC portal for IFS (Prelim with CSE) notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"GATE 2026","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"IIT Guwahati portal for GATE 2026.","link":"https://gate2026.iitg.ac.in/","logo":"https://gate2026.iitg.ac.in/favicon.ico"},
+    {"name":"Indian Statistical Service (UPSC)","category":"central","state":"All India","apply_start":"2026-02-11","apply_end":"2026-03-03","exam_date":"2026-06-19","eligibility":"As per official notice","desc":"UPSC portal for ISS notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"JEE Main","category":"central","state":"All India","apply_start":"2025-10-28","apply_end":"2025-11-22","exam_date":"2026-01-21 to 2026-01-30","eligibility":"As per official notice","desc":"NTA portal for JEE (Main) notices and application.","link":"https://jeemain.nta.nic.in/","logo":"https://www.nta.ac.in/favicon.ico"},
+    {"name":"NEET (UG)","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"NTA portal for NEET (UG) notices and application.","link":"https://neet.nta.nic.in/","logo":"https://www.nta.ac.in/favicon.ico"},
+    {"name":"National Defence Academy (UPSC)","category":"central","state":"All India","apply_start":"2025-12-10","apply_end":"2025-12-30","exam_date":"2026-04-12","eligibility":"As per official notice","desc":"UPSC portal for NDA notices and application.","link":"https://upsconline.nic.in/","logo":"https://upsc.gov.in/favicon.ico"},
+    {"name":"National Scholarship Portal (NSP)","category":"scholarship","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"—","eligibility":"As per official notice","desc":"Government of India portal for scholarship schemes and applications.","link":"https://scholarships.gov.in/","logo":"https://scholarships.gov.in/favicon.ico"},
+    {"name":"RRB NTPC","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"RRB portal for NTPC and other CEN notices.","link":"https://www.rrbcdg.gov.in/","logo":"https://www.rrbcdg.gov.in/favicon.ico"},
+    {"name":"SSC CGL / CHSL","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"SSC portal for CGL and CHSL notices and application.","link":"https://ssc.gov.in/","logo":"https://ssc.gov.in/favicon.ico"},
+    {"name":"UGC NET","category":"central","state":"All India","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"NTA portal for UGC-NET notices and application.","link":"https://ugcnet.nta.nic.in/","logo":"https://www.nta.ac.in/favicon.ico"},
+
+    {"name":"Tamil Nadu PSC (TNPSC)","category":"state","state":"Tamil Nadu","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"Official portal for Tamil Nadu PSC exams and notifications.","link":"https://www.tnpsc.gov.in/","logo":"https://www.tnpsc.gov.in/favicon.ico"},
+    {"name":"Kerala PSC (KPSC)","category":"state","state":"Kerala","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"Official portal for Kerala PSC exams and notifications.","link":"https://www.keralapsc.gov.in/","logo":"https://www.keralapsc.gov.in/favicon.ico"},
+    {"name":"Karnataka PSC (KPSC)","category":"state","state":"Karnataka","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"Official portal for Karnataka PSC exams and notifications.","link":"https://www.kpsc.kar.nic.in/","logo":"https://www.kpsc.kar.nic.in/favicon.ico"},
+    {"name":"Uttar Pradesh PSC (UPPSC)","category":"state","state":"Uttar Pradesh","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"Official portal for UPPSC exams and notifications.","link":"https://uppsc.up.nic.in/","logo":"https://uppsc.up.nic.in/favicon.ico"},
+    {"name":"Maharashtra PSC (MPSC)","category":"state","state":"Maharashtra","apply_start":"TBA","apply_end":"TBA","exam_date":"TBA","eligibility":"As per official notice","desc":"Official portal for MPSC exams and notifications.","link":"https://mpsc.gov.in/","logo":"https://mpsc.gov.in/favicon.ico"}
+  ] %}
+
+  <div class="cards-grid" id="examCards">
+    {% for item in items %}
+    <div class="exam-card glass-surface"
+         data-name="{{ item.name|lower }}"
+         data-category="{{ item.category }}"
+         data-state="{{ item.state|lower }}">
+      <div class="card-top">
+        <img class="card-logo" src="{{ item.logo }}" alt="{{ item.name }} logo" loading="lazy">
+        <span class="card-tag">{{ item.category|capitalize }}</span>
+      </div>
+      <h3>{{ item.name }}</h3>
+      <p class="card-desc">{{ item.desc }}</p>
+      <div class="card-meta">
+        <div><strong>Apply Start:</strong> {{ item.apply_start }}</div>
+        <div><strong>Apply End:</strong> {{ item.apply_end }}</div>
+        <div><strong>Exam Date:</strong> {{ item.exam_date }}</div>
+        <div><strong>Eligibility:</strong> {{ item.eligibility }}</div>
+        <div><strong>State:</strong> {{ item.state }}</div>
+      </div>
+      <a class="card-link" href="{{ item.link }}" target="_blank" rel="noopener">Official Site</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.opportunities-container{max-width:1200px;margin:0 auto;padding:0 20px;margin-top:32px;margin-bottom:40px}
+.opportunities-header{text-align:center;margin-bottom:24px;padding:26px;border-radius:16px}
+.opportunities-header h2{color:#241a12;font-size:34px;margin:0 0 8px}
+.opportunities-header .subtitle{color:#6f5c4f;margin:0;font-size:15px}
+
+.filter-section{margin-bottom:24px}
+.filter-card{background:#fff8f0;border:1px solid rgba(36,26,18,0.12);border-radius:12px;padding:20px}
+.filter-row{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px}
+.filter-input{padding:12px 14px;background:#fff;border:1px solid rgba(36,26,18,0.12);border-radius:10px;color:#241a12;font-size:14px}
+.filter-select{padding:12px 14px;background:#fff;border:1px solid rgba(36,26,18,0.12);border-radius:10px;color:#241a12;font-size:14px}
+.filter-btn{padding:12px 20px;background:linear-gradient(135deg,#c66d3d,#ff9f5a);color:#fff;border:none;border-radius:10px;font-weight:600}
+.filter-note{margin:10px 0 0;color:#6f5c4f;font-size:12px}
+
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.exam-card{background:#fff;border:1px solid rgba(36,26,18,0.12);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.card-top{display:flex;align-items:center;justify-content:space-between}
+.card-logo{width:32px;height:32px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid rgba(36,26,18,0.12);padding:4px}
+.card-tag{font-size:11px;font-weight:700;color:#1f2937;background:#e9f2f4;padding:4px 8px;border-radius:999px}
+.exam-card h3{margin:0;color:#241a12;font-size:15px}
+.card-desc{margin:0;color:#6f5c4f;font-size:13px;line-height:1.5}
+.card-meta{display:grid;gap:4px;font-size:12px;color:#3f2f23}
+.card-link{align-self:flex-start;margin-top:6px;background:linear-gradient(135deg,#c66d3d,#ff9f5a);color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600}
+
+@media (max-width:860px){
+  .filter-row{grid-template-columns:1fr}
+}
+</style>
+
+<script>
+  (function () {
+    const searchInput = document.getElementById('examSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const stateFilter = document.getElementById('stateFilter');
+    const applyBtn = document.getElementById('applyFilter');
+    const cards = Array.from(document.querySelectorAll('.exam-card'));
+
+    const applyFilters = () => {
+      const q = (searchInput.value || '').toLowerCase().trim();
+      const cat = categoryFilter.value;
+      const state = stateFilter.value.toLowerCase();
+
+      cards.forEach(card => {
+        const name = card.dataset.name || '';
+        const cardCat = card.dataset.category || '';
+        const cardState = card.dataset.state || '';
+        const matchesQuery = !q || name.includes(q);
+        const matchesCat = (cat === 'all') || (cardCat === cat);
+        const matchesState = (state === 'all') || (cardState === state);
+        card.style.display = (matchesQuery && matchesCat && matchesState) ? '' : 'none';
+      });
+    };
+
+    applyBtn.addEventListener('click', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    const params = new URLSearchParams(window.location.search);
+    const qParam = params.get('search');
+    if (qParam) {
+      searchInput.value = qParam;
+      applyFilters();
+    }
+  })();
+</script>
+{% endblock %}

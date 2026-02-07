@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Alerts · Awareness Delay{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header glass-surface">
+    <h2>🔔 Alerts</h2>
+    <p class="subtitle">Matches from your preferences (queued).</p>
+  </div>
+
+  {% if alerts %}
+  <div class="data-section fade-in glass-surface">
+    <h3 class="section-title">Queued Alerts</h3>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Channel</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Link</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in alerts %}
+          <tr class="table-row-animate">
+            <td><strong>{{ a.title }}</strong></td>
+            <td>{{ a.channel }}</td>
+            <td>{{ a.source }}</td>
+            <td>{{ a.status }}</td>
+            <td>
+              {% if a.url %}
+              <a href="{{ a.url }}" target="_blank" rel="noopener" style="color:#00ccff;">Open</a>
+              {% else %}
+              —
+              {% endif %}
+            </td>
+            <td>{{ a.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state fade-in">
+    <div class="empty-icon">🔔</div>
+    <h3>No Alerts Yet</h3>
+    <p>Set preferences and refresh sources to generate alerts.</p>
+    <a href="/preferences" class="btn">Set Preferences</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

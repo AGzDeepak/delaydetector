@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Home · Awareness Delay{% endblock %}
+{% block content %}
+  <div class="home-info glass-surface">
+    <div class="home-info-grid">
+      <div>
+        <h2>What This Platform Does</h2>
+        <p>
+          We measure how long it takes for people to hear about opportunities and reveal
+          where access is delayed or unequal.
+        </p>
+      </div>
+      <div>
+        <h3>Who It’s For</h3>
+        <p>
+          Students, job‑seekers, educators, and organizations who want fair, timely access
+          to internships, scholarships, and programs.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-steps glass-surface">
+    <h3>How It Works</h3>
+    <div class="home-steps-grid">
+      <div class="step-card">
+        <span class="step-number">1</span>
+        <h4>Submit</h4>
+        <p>Share when an opportunity was announced and when you first heard about it.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-number">2</span>
+        <h4>Measure</h4>
+        <p>We calculate delay and highlight patterns across regions and institutions.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-number">3</span>
+        <h4>Act</h4>
+        <p>Use insights to improve outreach and close information gaps.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-benefits glass-surface">
+    <h3>What You Get</h3>
+    <div class="home-benefits-grid">
+      <div class="benefit">Clear visibility into who gets opportunities late</div>
+      <div class="benefit">Personalized recommendations and saved opportunities</div>
+      <div class="benefit">Data‑driven insights to improve fairness</div>
+      <div class="benefit">A simple place to track deadlines and alerts</div>
+    </div>
+  </div>
+
+  <div class="home-opps glass-surface">
+    <div class="home-opps-header">
+      <h3>🌍 Online Opportunities</h3>
+      <p>Curated opportunities from trusted organizations. Explore details on official pages.</p>
+    </div>
+    <div class="home-opps-grid">
+      {% for opp in online_opps %}
+      <div class="home-opp-card">
+        <div class="home-opp-head">
+          <h4>{{ opp.title }}</h4>
+          <span class="home-opp-company">{{ opp.company }}</span>
+        </div>
+        <div class="home-opp-meta">
+          <span class="home-opp-badge">{{ opp.type }}</span>
+          <span class="home-opp-badge">{{ opp.region }}</span>
+          <span class="home-opp-badge">{{ opp.category }}</span>
+        </div>
+        <p class="home-opp-desc">{{ opp.summary if opp.summary else opp.description }}</p>
+        <div class="home-opp-footer">
+          <span>📅 {{ opp.deadline }}</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <a href="{{ opp.url }}" target="_blank" rel="noopener">Visit →</a>
+            <form method="POST" action="/save-opportunity" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="source" value="{{ opp.source }}">
+              <input type="hidden" name="source_id" value="{{ opp.source_id if opp.source_id is defined }}">
+              <input type="hidden" name="title" value="{{ opp.title }}">
+              <input type="hidden" name="url" value="{{ opp.url }}">
+              <button type="submit" style="background: none; border: none; color: #00ccff; font-weight: 600; cursor: pointer;">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,730 @@
+2026-02-07 10:24:26,080 WARNING  * Debugger is active!
+2026-02-07 10:24:26,087 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:24:35,581 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:24:36,367 WARNING  * Debugger is active!
+2026-02-07 10:24:36,374 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:25:26,590 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:25:27,322 WARNING  * Debugger is active!
+2026-02-07 10:25:27,326 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:25:32,636 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:25:33,354 WARNING  * Debugger is active!
+2026-02-07 10:25:33,359 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:25:39,725 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:25:40,474 WARNING  * Debugger is active!
+2026-02-07 10:25:40,480 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:25:45,790 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:25:46,483 WARNING  * Debugger is active!
+2026-02-07 10:25:46,489 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:27:48,826 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:27:49,715 WARNING  * Debugger is active!
+2026-02-07 10:27:49,721 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:27:56,108 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:27:56,943 WARNING  * Debugger is active!
+2026-02-07 10:27:56,951 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:28:02,355 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:28:03,176 WARNING  * Debugger is active!
+2026-02-07 10:28:03,180 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:28:09,545 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:28:10,324 WARNING  * Debugger is active!
+2026-02-07 10:28:10,329 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:28:39,056 INFO 127.0.0.1 - - [07/Feb/2026 10:28:39] "GET /submit HTTP/1.1" 200 -
+2026-02-07 10:28:39,170 INFO 127.0.0.1 - - [07/Feb/2026 10:28:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:28:41,905 INFO 127.0.0.1 - - [07/Feb/2026 10:28:41] "GET /submit HTTP/1.1" 200 -
+2026-02-07 10:28:41,923 INFO 127.0.0.1 - - [07/Feb/2026 10:28:41] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:28:55,360 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-07 10:28:55,360 INFO [33mPress CTRL+C to quit[0m
+2026-02-07 10:28:55,362 INFO  * Restarting with stat
+2026-02-07 10:28:56,046 WARNING  * Debugger is active!
+2026-02-07 10:28:56,050 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:29:10,090 INFO 127.0.0.1 - - [07/Feb/2026 10:29:10] "GET /submit HTTP/1.1" 200 -
+2026-02-07 10:29:10,192 INFO 127.0.0.1 - - [07/Feb/2026 10:29:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:12,608 INFO 127.0.0.1 - - [07/Feb/2026 10:29:12] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-02-07 10:29:12,625 INFO 127.0.0.1 - - [07/Feb/2026 10:29:12] "GET / HTTP/1.1" 200 -
+2026-02-07 10:29:12,658 INFO 127.0.0.1 - - [07/Feb/2026 10:29:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:15,033 INFO 127.0.0.1 - - [07/Feb/2026 10:29:15] "[32mPOST /acknowledge HTTP/1.1[0m" 302 -
+2026-02-07 10:29:15,040 INFO 127.0.0.1 - - [07/Feb/2026 10:29:15] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2026-02-07 10:29:15,050 INFO 127.0.0.1 - - [07/Feb/2026 10:29:15] "GET /login HTTP/1.1" 200 -
+2026-02-07 10:29:15,080 INFO 127.0.0.1 - - [07/Feb/2026 10:29:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:24,214 INFO 127.0.0.1 - - [07/Feb/2026 10:29:24] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-07 10:29:24,246 INFO 127.0.0.1 - - [07/Feb/2026 10:29:24] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 10:29:24,280 INFO 127.0.0.1 - - [07/Feb/2026 10:29:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:27,237 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+  File "C:\delay\app.py", line 1121, in enforce_csrf_and_rate_limits
+    abort(400)
+    ~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\helpers.py", line 291, in abort
+    current_app.aborter(code, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2026-02-07 10:29:27,276 INFO 127.0.0.1 - - [07/Feb/2026 10:29:27] "[35m[1mPOST /acknowledge HTTP/1.1[0m" 500 -
+2026-02-07 10:29:30,726 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+  File "C:\delay\app.py", line 1121, in enforce_csrf_and_rate_limits
+    abort(400)
+    ~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\helpers.py", line 291, in abort
+    current_app.aborter(code, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2026-02-07 10:29:30,729 INFO 127.0.0.1 - - [07/Feb/2026 10:29:30] "[35m[1mPOST /acknowledge HTTP/1.1[0m" 500 -
+2026-02-07 10:29:33,889 INFO 127.0.0.1 - - [07/Feb/2026 10:29:33] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:29:33,917 INFO 127.0.0.1 - - [07/Feb/2026 10:29:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:35,892 INFO 127.0.0.1 - - [07/Feb/2026 10:29:35] "[32mPOST /save-opportunity HTTP/1.1[0m" 302 -
+2026-02-07 10:29:35,904 INFO 127.0.0.1 - - [07/Feb/2026 10:29:35] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:29:35,926 INFO 127.0.0.1 - - [07/Feb/2026 10:29:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:37,371 INFO 127.0.0.1 - - [07/Feb/2026 10:29:37] "GET /saved HTTP/1.1" 200 -
+2026-02-07 10:29:37,400 INFO 127.0.0.1 - - [07/Feb/2026 10:29:37] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:29:39,464 INFO 127.0.0.1 - - [07/Feb/2026 10:29:39] "GET /admin HTTP/1.1" 200 -
+2026-02-07 10:29:39,497 INFO 127.0.0.1 - - [07/Feb/2026 10:29:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:32:35,577 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+  File "C:\delay\app.py", line 1121, in enforce_csrf_and_rate_limits
+    abort(400)
+    ~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\helpers.py", line 291, in abort
+    current_app.aborter(code, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2026-02-07 10:32:35,580 INFO 127.0.0.1 - - [07/Feb/2026 10:32:35] "[35m[1mPOST /acknowledge HTTP/1.1[0m" 500 -
+2026-02-07 10:32:39,615 INFO 127.0.0.1 - - [07/Feb/2026 10:32:39] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:32:39,642 INFO 127.0.0.1 - - [07/Feb/2026 10:32:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:32:42,976 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+  File "C:\delay\app.py", line 1121, in enforce_csrf_and_rate_limits
+    abort(400)
+    ~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\helpers.py", line 291, in abort
+    current_app.aborter(code, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.BadRequest: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+2026-02-07 10:32:42,979 INFO 127.0.0.1 - - [07/Feb/2026 10:32:42] "[35m[1mPOST /acknowledge HTTP/1.1[0m" 500 -
+2026-02-07 10:33:11,643 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:33:11,730 INFO  * Restarting with stat
+2026-02-07 10:33:12,413 WARNING  * Debugger is active!
+2026-02-07 10:33:12,419 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:33:33,688 INFO 127.0.0.1 - - [07/Feb/2026 10:33:33] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:33:33,804 INFO 127.0.0.1 - - [07/Feb/2026 10:33:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:33:36,546 INFO 127.0.0.1 - - [07/Feb/2026 10:33:36] "GET / HTTP/1.1" 200 -
+2026-02-07 10:33:36,574 INFO 127.0.0.1 - - [07/Feb/2026 10:33:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:33:37,602 INFO 127.0.0.1 - - [07/Feb/2026 10:33:37] "GET /submit HTTP/1.1" 200 -
+2026-02-07 10:33:37,636 INFO 127.0.0.1 - - [07/Feb/2026 10:33:37] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:33:38,798 INFO 127.0.0.1 - - [07/Feb/2026 10:33:38] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 10:33:38,828 INFO 127.0.0.1 - - [07/Feb/2026 10:33:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:33:43,291 INFO 127.0.0.1 - - [07/Feb/2026 10:33:43] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:33:43,321 INFO 127.0.0.1 - - [07/Feb/2026 10:33:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:33:45,778 INFO 127.0.0.1 - - [07/Feb/2026 10:33:45] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 10:33:45,810 INFO 127.0.0.1 - - [07/Feb/2026 10:33:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:48,254 INFO 127.0.0.1 - - [07/Feb/2026 10:39:48] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 10:39:48,280 INFO 127.0.0.1 - - [07/Feb/2026 10:39:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:55,032 INFO 127.0.0.1 - - [07/Feb/2026 10:39:55] "GET /alerts HTTP/1.1" 200 -
+2026-02-07 10:39:55,063 INFO 127.0.0.1 - - [07/Feb/2026 10:39:55] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:56,029 INFO 127.0.0.1 - - [07/Feb/2026 10:39:56] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 10:39:56,059 INFO 127.0.0.1 - - [07/Feb/2026 10:39:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:56,889 INFO 127.0.0.1 - - [07/Feb/2026 10:39:56] "GET /profile HTTP/1.1" 200 -
+2026-02-07 10:39:56,914 INFO 127.0.0.1 - - [07/Feb/2026 10:39:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:57,828 INFO 127.0.0.1 - - [07/Feb/2026 10:39:57] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 10:39:57,854 INFO 127.0.0.1 - - [07/Feb/2026 10:39:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:39:59,710 INFO 127.0.0.1 - - [07/Feb/2026 10:39:59] "GET /profile HTTP/1.1" 200 -
+2026-02-07 10:39:59,736 INFO 127.0.0.1 - - [07/Feb/2026 10:39:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:40:03,431 INFO 127.0.0.1 - - [07/Feb/2026 10:40:03] "GET /insights HTTP/1.1" 200 -
+2026-02-07 10:40:03,469 INFO 127.0.0.1 - - [07/Feb/2026 10:40:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:40:04,903 INFO 127.0.0.1 - - [07/Feb/2026 10:40:04] "GET /admin HTTP/1.1" 200 -
+2026-02-07 10:40:04,933 INFO 127.0.0.1 - - [07/Feb/2026 10:40:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:41:42,570 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:41:42,632 INFO  * Restarting with stat
+2026-02-07 10:41:43,290 WARNING  * Debugger is active!
+2026-02-07 10:41:43,295 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:42:21,331 INFO 127.0.0.1 - - [07/Feb/2026 10:42:21] "GET /admin HTTP/1.1" 200 -
+2026-02-07 10:42:21,438 INFO 127.0.0.1 - - [07/Feb/2026 10:42:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:42:25,955 INFO 127.0.0.1 - - [07/Feb/2026 10:42:25] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 10:42:25,984 INFO 127.0.0.1 - - [07/Feb/2026 10:42:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:42:28,342 INFO 127.0.0.1 - - [07/Feb/2026 10:42:28] "GET /profile HTTP/1.1" 200 -
+2026-02-07 10:42:28,372 INFO 127.0.0.1 - - [07/Feb/2026 10:42:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:42:30,877 INFO 127.0.0.1 - - [07/Feb/2026 10:42:30] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 10:42:30,885 INFO 127.0.0.1 - - [07/Feb/2026 10:42:30] "GET /profile HTTP/1.1" 200 -
+2026-02-07 10:42:30,906 INFO 127.0.0.1 - - [07/Feb/2026 10:42:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:43:52,843 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 10:43:52,923 INFO  * Restarting with stat
+2026-02-07 10:43:53,689 WARNING  * Debugger is active!
+2026-02-07 10:43:53,694 INFO  * Debugger PIN: 108-268-275
+2026-02-07 10:44:11,485 INFO 127.0.0.1 - - [07/Feb/2026 10:44:11] "GET /profile HTTP/1.1" 200 -
+2026-02-07 10:44:11,604 INFO 127.0.0.1 - - [07/Feb/2026 10:44:11] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:44:14,321 INFO 127.0.0.1 - - [07/Feb/2026 10:44:14] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 10:44:14,330 INFO 127.0.0.1 - - [07/Feb/2026 10:44:14] "GET /profile?cleared=1 HTTP/1.1" 200 -
+2026-02-07 10:44:14,367 INFO 127.0.0.1 - - [07/Feb/2026 10:44:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:44:17,619 INFO 127.0.0.1 - - [07/Feb/2026 10:44:17] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 10:44:17,656 INFO 127.0.0.1 - - [07/Feb/2026 10:44:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:44:19,270 INFO 127.0.0.1 - - [07/Feb/2026 10:44:19] "[32mPOST /preferences HTTP/1.1[0m" 302 -
+2026-02-07 10:44:19,279 INFO 127.0.0.1 - - [07/Feb/2026 10:44:19] "GET /preferences?cleared=1 HTTP/1.1" 200 -
+2026-02-07 10:44:19,314 INFO 127.0.0.1 - - [07/Feb/2026 10:44:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 10:44:27,216 INFO 127.0.0.1 - - [07/Feb/2026 10:44:27] "[32mPOST /preferences?cleared=1 HTTP/1.1[0m" 302 -
+2026-02-07 10:44:27,223 INFO 127.0.0.1 - - [07/Feb/2026 10:44:27] "GET /preferences?cleared=1 HTTP/1.1" 200 -
+2026-02-07 10:44:27,242 INFO 127.0.0.1 - - [07/Feb/2026 10:44:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:20,173 INFO 127.0.0.1 - - [07/Feb/2026 11:01:20] "GET /preferences?cleared=1 HTTP/1.1" 200 -
+2026-02-07 11:01:20,196 INFO 127.0.0.1 - - [07/Feb/2026 11:01:20] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:01:25,531 INFO 127.0.0.1 - - [07/Feb/2026 11:01:25] "GET /saved HTTP/1.1" 200 -
+2026-02-07 11:01:25,557 INFO 127.0.0.1 - - [07/Feb/2026 11:01:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:29,701 INFO 127.0.0.1 - - [07/Feb/2026 11:01:29] "GET /alerts HTTP/1.1" 200 -
+2026-02-07 11:01:29,725 INFO 127.0.0.1 - - [07/Feb/2026 11:01:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:34,311 INFO 127.0.0.1 - - [07/Feb/2026 11:01:34] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:01:34,333 INFO 127.0.0.1 - - [07/Feb/2026 11:01:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:34,941 INFO 127.0.0.1 - - [07/Feb/2026 11:01:34] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:01:34,967 INFO 127.0.0.1 - - [07/Feb/2026 11:01:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:35,694 INFO 127.0.0.1 - - [07/Feb/2026 11:01:35] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:01:35,720 INFO 127.0.0.1 - - [07/Feb/2026 11:01:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:36,955 INFO 127.0.0.1 - - [07/Feb/2026 11:01:36] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:01:36,980 INFO 127.0.0.1 - - [07/Feb/2026 11:01:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:37,741 INFO 127.0.0.1 - - [07/Feb/2026 11:01:37] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:01:37,768 INFO 127.0.0.1 - - [07/Feb/2026 11:01:37] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:38,492 INFO 127.0.0.1 - - [07/Feb/2026 11:01:38] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:01:38,519 INFO 127.0.0.1 - - [07/Feb/2026 11:01:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:39,215 INFO 127.0.0.1 - - [07/Feb/2026 11:01:39] "GET / HTTP/1.1" 200 -
+2026-02-07 11:01:39,242 INFO 127.0.0.1 - - [07/Feb/2026 11:01:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:39,855 INFO 127.0.0.1 - - [07/Feb/2026 11:01:39] "GET / HTTP/1.1" 200 -
+2026-02-07 11:01:39,875 INFO 127.0.0.1 - - [07/Feb/2026 11:01:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:45,130 INFO 127.0.0.1 - - [07/Feb/2026 11:01:45] "GET /opportunities?search=roles HTTP/1.1" 200 -
+2026-02-07 11:01:45,165 INFO 127.0.0.1 - - [07/Feb/2026 11:01:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:01:49,274 INFO 127.0.0.1 - - [07/Feb/2026 11:01:49] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:01:49,301 INFO 127.0.0.1 - - [07/Feb/2026 11:01:49] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:05:32,797 INFO 127.0.0.1 - - [07/Feb/2026 11:05:32] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:05:32,818 INFO 127.0.0.1 - - [07/Feb/2026 11:05:32] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:05:35,284 INFO 127.0.0.1 - - [07/Feb/2026 11:05:35] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:05:35,303 INFO 127.0.0.1 - - [07/Feb/2026 11:05:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:05:36,865 INFO 127.0.0.1 - - [07/Feb/2026 11:05:36] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:05:36,892 INFO 127.0.0.1 - - [07/Feb/2026 11:05:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:05:51,076 INFO 127.0.0.1 - - [07/Feb/2026 11:05:51] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:05:51,107 INFO 127.0.0.1 - - [07/Feb/2026 11:05:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:07:13,649 INFO 127.0.0.1 - - [07/Feb/2026 11:07:13] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:07:13,671 INFO 127.0.0.1 - - [07/Feb/2026 11:07:13] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:07:18,869 INFO 127.0.0.1 - - [07/Feb/2026 11:07:18] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:07:18,901 INFO 127.0.0.1 - - [07/Feb/2026 11:07:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:09:31,960 INFO 127.0.0.1 - - [07/Feb/2026 11:09:31] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:09:31,978 INFO 127.0.0.1 - - [07/Feb/2026 11:09:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:10:28,440 INFO 127.0.0.1 - - [07/Feb/2026 11:10:28] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:10:28,460 INFO 127.0.0.1 - - [07/Feb/2026 11:10:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:11:32,620 INFO 127.0.0.1 - - [07/Feb/2026 11:11:32] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:11:32,639 INFO 127.0.0.1 - - [07/Feb/2026 11:11:32] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:11:36,512 INFO 127.0.0.1 - - [07/Feb/2026 11:11:36] "GET / HTTP/1.1" 200 -
+2026-02-07 11:11:36,540 INFO 127.0.0.1 - - [07/Feb/2026 11:11:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:11,474 INFO 127.0.0.1 - - [07/Feb/2026 11:13:11] "GET / HTTP/1.1" 200 -
+2026-02-07 11:13:11,493 INFO 127.0.0.1 - - [07/Feb/2026 11:13:11] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:13:15,238 INFO 127.0.0.1 - - [07/Feb/2026 11:13:15] "GET /alerts HTTP/1.1" 200 -
+2026-02-07 11:13:15,264 INFO 127.0.0.1 - - [07/Feb/2026 11:13:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:16,497 INFO 127.0.0.1 - - [07/Feb/2026 11:13:16] "GET /saved HTTP/1.1" 200 -
+2026-02-07 11:13:16,521 INFO 127.0.0.1 - - [07/Feb/2026 11:13:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:20,428 INFO 127.0.0.1 - - [07/Feb/2026 11:13:20] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:13:20,454 INFO 127.0.0.1 - - [07/Feb/2026 11:13:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:22,964 INFO 127.0.0.1 - - [07/Feb/2026 11:13:22] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 11:13:22,972 INFO 127.0.0.1 - - [07/Feb/2026 11:13:22] "GET /profile?cleared=1 HTTP/1.1" 200 -
+2026-02-07 11:13:23,008 INFO 127.0.0.1 - - [07/Feb/2026 11:13:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:25,038 INFO 127.0.0.1 - - [07/Feb/2026 11:13:25] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:13:25,066 INFO 127.0.0.1 - - [07/Feb/2026 11:13:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:27,107 INFO 127.0.0.1 - - [07/Feb/2026 11:13:27] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:13:27,134 INFO 127.0.0.1 - - [07/Feb/2026 11:13:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:13:33,332 INFO 127.0.0.1 - - [07/Feb/2026 11:13:33] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:13:33,360 INFO 127.0.0.1 - - [07/Feb/2026 11:13:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:15:28,993 INFO 127.0.0.1 - - [07/Feb/2026 11:15:28] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:15:29,013 INFO 127.0.0.1 - - [07/Feb/2026 11:15:29] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:16:36,314 INFO 127.0.0.1 - - [07/Feb/2026 11:16:36] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:16:36,334 INFO 127.0.0.1 - - [07/Feb/2026 11:16:36] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:17:36,731 INFO 127.0.0.1 - - [07/Feb/2026 11:17:36] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:17:36,752 INFO 127.0.0.1 - - [07/Feb/2026 11:17:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:18:14,413 INFO 127.0.0.1 - - [07/Feb/2026 11:18:14] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:18:14,435 INFO 127.0.0.1 - - [07/Feb/2026 11:18:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:18:29,341 INFO 127.0.0.1 - - [07/Feb/2026 11:18:29] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:18:29,369 INFO 127.0.0.1 - - [07/Feb/2026 11:18:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:20:42,003 INFO 127.0.0.1 - - [07/Feb/2026 11:20:42] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:20:42,022 INFO 127.0.0.1 - - [07/Feb/2026 11:20:42] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:21:47,721 INFO 127.0.0.1 - - [07/Feb/2026 11:21:47] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:21:47,747 INFO 127.0.0.1 - - [07/Feb/2026 11:21:47] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:21:48,286 INFO 127.0.0.1 - - [07/Feb/2026 11:21:48] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:21:48,314 INFO 127.0.0.1 - - [07/Feb/2026 11:21:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:21:50,217 INFO 127.0.0.1 - - [07/Feb/2026 11:21:50] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:21:50,245 INFO 127.0.0.1 - - [07/Feb/2026 11:21:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:21:51,635 INFO 127.0.0.1 - - [07/Feb/2026 11:21:51] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:21:51,665 INFO 127.0.0.1 - - [07/Feb/2026 11:21:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:21:52,134 INFO 127.0.0.1 - - [07/Feb/2026 11:21:52] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:21:52,163 INFO 127.0.0.1 - - [07/Feb/2026 11:21:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:21:54,642 INFO 127.0.0.1 - - [07/Feb/2026 11:21:54] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:21:54,671 INFO 127.0.0.1 - - [07/Feb/2026 11:21:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:21:57,533 INFO 127.0.0.1 - - [07/Feb/2026 11:21:57] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:21:57,561 INFO 127.0.0.1 - - [07/Feb/2026 11:21:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:22:00,023 INFO 127.0.0.1 - - [07/Feb/2026 11:22:00] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:22:00,053 INFO 127.0.0.1 - - [07/Feb/2026 11:22:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:26:56,162 INFO 127.0.0.1 - - [07/Feb/2026 11:26:56] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:26:56,191 INFO 127.0.0.1 - - [07/Feb/2026 11:26:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:26:56,798 INFO 127.0.0.1 - - [07/Feb/2026 11:26:56] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:26:56,828 INFO 127.0.0.1 - - [07/Feb/2026 11:26:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:26:57,483 INFO 127.0.0.1 - - [07/Feb/2026 11:26:57] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:26:57,510 INFO 127.0.0.1 - - [07/Feb/2026 11:26:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:26:57,985 INFO 127.0.0.1 - - [07/Feb/2026 11:26:57] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:26:58,013 INFO 127.0.0.1 - - [07/Feb/2026 11:26:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:26:59,801 INFO 127.0.0.1 - - [07/Feb/2026 11:26:59] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:26:59,831 INFO 127.0.0.1 - - [07/Feb/2026 11:26:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:00,302 INFO 127.0.0.1 - - [07/Feb/2026 11:27:00] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:27:00,332 INFO 127.0.0.1 - - [07/Feb/2026 11:27:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:00,802 INFO 127.0.0.1 - - [07/Feb/2026 11:27:00] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:27:00,830 INFO 127.0.0.1 - - [07/Feb/2026 11:27:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:01,402 INFO 127.0.0.1 - - [07/Feb/2026 11:27:01] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:27:01,430 INFO 127.0.0.1 - - [07/Feb/2026 11:27:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:02,032 INFO 127.0.0.1 - - [07/Feb/2026 11:27:02] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:27:02,063 INFO 127.0.0.1 - - [07/Feb/2026 11:27:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:02,727 INFO 127.0.0.1 - - [07/Feb/2026 11:27:02] "GET / HTTP/1.1" 200 -
+2026-02-07 11:27:02,755 INFO 127.0.0.1 - - [07/Feb/2026 11:27:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:03,372 INFO 127.0.0.1 - - [07/Feb/2026 11:27:03] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:27:03,400 INFO 127.0.0.1 - - [07/Feb/2026 11:27:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:04,260 INFO 127.0.0.1 - - [07/Feb/2026 11:27:04] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:27:04,289 INFO 127.0.0.1 - - [07/Feb/2026 11:27:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:04,759 INFO 127.0.0.1 - - [07/Feb/2026 11:27:04] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:27:04,789 INFO 127.0.0.1 - - [07/Feb/2026 11:27:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:05,264 INFO 127.0.0.1 - - [07/Feb/2026 11:27:05] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:27:05,293 INFO 127.0.0.1 - - [07/Feb/2026 11:27:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:05,669 INFO 127.0.0.1 - - [07/Feb/2026 11:27:05] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:27:05,697 INFO 127.0.0.1 - - [07/Feb/2026 11:27:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:06,157 INFO 127.0.0.1 - - [07/Feb/2026 11:27:06] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:27:06,186 INFO 127.0.0.1 - - [07/Feb/2026 11:27:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:06,795 INFO 127.0.0.1 - - [07/Feb/2026 11:27:06] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:27:06,824 INFO 127.0.0.1 - - [07/Feb/2026 11:27:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:07,329 INFO 127.0.0.1 - - [07/Feb/2026 11:27:07] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:27:07,360 INFO 127.0.0.1 - - [07/Feb/2026 11:27:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:07,725 INFO 127.0.0.1 - - [07/Feb/2026 11:27:07] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:27:07,754 INFO 127.0.0.1 - - [07/Feb/2026 11:27:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:08,154 INFO 127.0.0.1 - - [07/Feb/2026 11:27:08] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:27:08,183 INFO 127.0.0.1 - - [07/Feb/2026 11:27:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:09,043 INFO 127.0.0.1 - - [07/Feb/2026 11:27:09] "GET / HTTP/1.1" 200 -
+2026-02-07 11:27:09,070 INFO 127.0.0.1 - - [07/Feb/2026 11:27:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:27:55,554 INFO 127.0.0.1 - - [07/Feb/2026 11:27:55] "GET / HTTP/1.1" 200 -
+2026-02-07 11:27:55,573 INFO 127.0.0.1 - - [07/Feb/2026 11:27:55] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:30:35,103 INFO 127.0.0.1 - - [07/Feb/2026 11:30:35] "GET / HTTP/1.1" 200 -
+2026-02-07 11:30:35,122 INFO 127.0.0.1 - - [07/Feb/2026 11:30:35] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:30:49,590 INFO 127.0.0.1 - - [07/Feb/2026 11:30:49] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:30:49,618 INFO 127.0.0.1 - - [07/Feb/2026 11:30:49] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:36:01,342 INFO 127.0.0.1 - - [07/Feb/2026 11:36:01] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:36:01,362 INFO 127.0.0.1 - - [07/Feb/2026 11:36:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:40:35,696 INFO 127.0.0.1 - - [07/Feb/2026 11:40:35] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:40:35,717 INFO 127.0.0.1 - - [07/Feb/2026 11:40:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:46:54,055 INFO 127.0.0.1 - - [07/Feb/2026 11:46:54] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:46:54,075 INFO 127.0.0.1 - - [07/Feb/2026 11:46:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:54:57,673 INFO 127.0.0.1 - - [07/Feb/2026 11:54:57] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:54:57,693 INFO 127.0.0.1 - - [07/Feb/2026 11:54:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:39,204 INFO 127.0.0.1 - - [07/Feb/2026 11:56:39] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:56:39,231 INFO 127.0.0.1 - - [07/Feb/2026 11:56:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:39,792 INFO 127.0.0.1 - - [07/Feb/2026 11:56:39] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:56:39,820 INFO 127.0.0.1 - - [07/Feb/2026 11:56:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:40,743 INFO 127.0.0.1 - - [07/Feb/2026 11:56:40] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:56:40,770 INFO 127.0.0.1 - - [07/Feb/2026 11:56:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:45,432 INFO 127.0.0.1 - - [07/Feb/2026 11:56:45] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:56:45,460 INFO 127.0.0.1 - - [07/Feb/2026 11:56:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:46,597 INFO 127.0.0.1 - - [07/Feb/2026 11:56:46] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:56:46,623 INFO 127.0.0.1 - - [07/Feb/2026 11:56:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:48,022 INFO 127.0.0.1 - - [07/Feb/2026 11:56:48] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:56:48,049 INFO 127.0.0.1 - - [07/Feb/2026 11:56:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:56:52,702 INFO 127.0.0.1 - - [07/Feb/2026 11:56:52] "GET / HTTP/1.1" 200 -
+2026-02-07 11:56:52,729 INFO 127.0.0.1 - - [07/Feb/2026 11:56:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:01,309 INFO 127.0.0.1 - - [07/Feb/2026 11:57:01] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:57:01,340 INFO 127.0.0.1 - - [07/Feb/2026 11:57:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:41,024 INFO 127.0.0.1 - - [07/Feb/2026 11:57:41] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:57:41,045 INFO 127.0.0.1 - - [07/Feb/2026 11:57:41] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 11:57:43,469 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:57:43,489 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:43,798 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:57:43,818 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:43,948 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 11:57:43,974 INFO 127.0.0.1 - - [07/Feb/2026 11:57:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:50,020 INFO 127.0.0.1 - - [07/Feb/2026 11:57:50] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:57:50,049 INFO 127.0.0.1 - - [07/Feb/2026 11:57:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:51,047 INFO 127.0.0.1 - - [07/Feb/2026 11:57:51] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:57:51,074 INFO 127.0.0.1 - - [07/Feb/2026 11:57:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:51,888 INFO 127.0.0.1 - - [07/Feb/2026 11:57:51] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:57:51,916 INFO 127.0.0.1 - - [07/Feb/2026 11:57:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:53,178 INFO 127.0.0.1 - - [07/Feb/2026 11:57:53] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:57:53,206 INFO 127.0.0.1 - - [07/Feb/2026 11:57:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:54,776 INFO 127.0.0.1 - - [07/Feb/2026 11:57:54] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:57:54,804 INFO 127.0.0.1 - - [07/Feb/2026 11:57:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:57:59,267 INFO 127.0.0.1 - - [07/Feb/2026 11:57:59] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 11:57:59,276 INFO 127.0.0.1 - - [07/Feb/2026 11:57:59] "GET /profile?cleared=1 HTTP/1.1" 200 -
+2026-02-07 11:57:59,309 INFO 127.0.0.1 - - [07/Feb/2026 11:57:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:01,298 INFO 127.0.0.1 - - [07/Feb/2026 11:58:01] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:58:01,326 INFO 127.0.0.1 - - [07/Feb/2026 11:58:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:01,800 INFO 127.0.0.1 - - [07/Feb/2026 11:58:01] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:58:01,825 INFO 127.0.0.1 - - [07/Feb/2026 11:58:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:02,729 INFO 127.0.0.1 - - [07/Feb/2026 11:58:02] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:58:02,756 INFO 127.0.0.1 - - [07/Feb/2026 11:58:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:03,690 INFO 127.0.0.1 - - [07/Feb/2026 11:58:03] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:58:03,716 INFO 127.0.0.1 - - [07/Feb/2026 11:58:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:04,475 INFO 127.0.0.1 - - [07/Feb/2026 11:58:04] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:58:04,500 INFO 127.0.0.1 - - [07/Feb/2026 11:58:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:05,778 INFO 127.0.0.1 - - [07/Feb/2026 11:58:05] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 11:58:05,786 INFO 127.0.0.1 - - [07/Feb/2026 11:58:05] "GET /profile?cleared=1 HTTP/1.1" 200 -
+2026-02-07 11:58:05,817 INFO 127.0.0.1 - - [07/Feb/2026 11:58:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:07,699 INFO 127.0.0.1 - - [07/Feb/2026 11:58:07] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:58:07,728 INFO 127.0.0.1 - - [07/Feb/2026 11:58:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:08,106 INFO 127.0.0.1 - - [07/Feb/2026 11:58:08] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:58:08,131 INFO 127.0.0.1 - - [07/Feb/2026 11:58:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:58:58,580 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 11:58:58,675 INFO  * Restarting with stat
+2026-02-07 11:58:59,200 WARNING  * Debugger is active!
+2026-02-07 11:58:59,204 INFO  * Debugger PIN: 108-268-275
+2026-02-07 11:59:23,559 INFO 127.0.0.1 - - [07/Feb/2026 11:59:23] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:59:23,694 INFO 127.0.0.1 - - [07/Feb/2026 11:59:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:26,709 INFO 127.0.0.1 - - [07/Feb/2026 11:59:26] "[32mPOST /profile HTTP/1.1[0m" 302 -
+2026-02-07 11:59:26,717 INFO 127.0.0.1 - - [07/Feb/2026 11:59:26] "GET /profile?cleared=1 HTTP/1.1" 200 -
+2026-02-07 11:59:26,749 INFO 127.0.0.1 - - [07/Feb/2026 11:59:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:28,005 INFO 127.0.0.1 - - [07/Feb/2026 11:59:28] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 11:59:28,031 INFO 127.0.0.1 - - [07/Feb/2026 11:59:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:28,576 INFO 127.0.0.1 - - [07/Feb/2026 11:59:28] "GET /profile HTTP/1.1" 200 -
+2026-02-07 11:59:28,602 INFO 127.0.0.1 - - [07/Feb/2026 11:59:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:29,906 INFO 127.0.0.1 - - [07/Feb/2026 11:59:29] "GET /insights HTTP/1.1" 200 -
+2026-02-07 11:59:29,933 INFO 127.0.0.1 - - [07/Feb/2026 11:59:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:31,812 INFO 127.0.0.1 - - [07/Feb/2026 11:59:31] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 11:59:31,840 INFO 127.0.0.1 - - [07/Feb/2026 11:59:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 11:59:33,341 INFO 127.0.0.1 - - [07/Feb/2026 11:59:33] "GET /submit HTTP/1.1" 200 -
+2026-02-07 11:59:33,366 INFO 127.0.0.1 - - [07/Feb/2026 11:59:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:00:49,327 INFO 127.0.0.1 - - [07/Feb/2026 12:00:49] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:00:49,346 INFO 127.0.0.1 - - [07/Feb/2026 12:00:49] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:01:23,332 INFO 127.0.0.1 - - [07/Feb/2026 12:01:23] "[32mPOST /submit HTTP/1.1[0m" 302 -
+2026-02-07 12:01:23,344 INFO 127.0.0.1 - - [07/Feb/2026 12:01:23] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:01:23,377 INFO 127.0.0.1 - - [07/Feb/2026 12:01:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:01:38,636 INFO 127.0.0.1 - - [07/Feb/2026 12:01:38] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:01:38,662 INFO 127.0.0.1 - - [07/Feb/2026 12:01:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:02:41,133 INFO 127.0.0.1 - - [07/Feb/2026 12:02:41] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:02:41,153 INFO 127.0.0.1 - - [07/Feb/2026 12:02:41] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:04:25,670 INFO 127.0.0.1 - - [07/Feb/2026 12:04:25] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:04:25,690 INFO 127.0.0.1 - - [07/Feb/2026 12:04:25] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:04:31,403 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 624, in match
+    raise MethodNotAllowed(valid_methods=list(e.have_match_for)) from None
+werkzeug.exceptions.MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.
+2026-02-07 12:04:31,408 INFO 127.0.0.1 - - [07/Feb/2026 12:04:31] "[35m[1mGET /admin/refresh-sources HTTP/1.1[0m" 500 -
+2026-02-07 12:04:36,803 INFO 127.0.0.1 - - [07/Feb/2026 12:04:36] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 12:04:36,828 INFO 127.0.0.1 - - [07/Feb/2026 12:04:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:04:38,439 INFO 127.0.0.1 - - [07/Feb/2026 12:04:38] "GET /profile HTTP/1.1" 200 -
+2026-02-07 12:04:38,467 INFO 127.0.0.1 - - [07/Feb/2026 12:04:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:04:40,091 INFO 127.0.0.1 - - [07/Feb/2026 12:04:40] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:04:40,120 INFO 127.0.0.1 - - [07/Feb/2026 12:04:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:06:08,748 INFO 127.0.0.1 - - [07/Feb/2026 12:06:08] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:06:08,768 INFO 127.0.0.1 - - [07/Feb/2026 12:06:08] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:07:35,058 INFO 127.0.0.1 - - [07/Feb/2026 12:07:35] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:07:35,084 INFO 127.0.0.1 - - [07/Feb/2026 12:07:35] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:07:43,102 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 624, in match
+    raise MethodNotAllowed(valid_methods=list(e.have_match_for)) from None
+werkzeug.exceptions.MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.
+2026-02-07 12:07:43,105 INFO 127.0.0.1 - - [07/Feb/2026 12:07:43] "[35m[1mGET /admin/refresh-sources HTTP/1.1[0m" 500 -
+2026-02-07 12:09:06,940 INFO 127.0.0.1 - - [07/Feb/2026 12:09:06] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:09:06,960 INFO 127.0.0.1 - - [07/Feb/2026 12:09:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:09:08,127 INFO 127.0.0.1 - - [07/Feb/2026 12:09:08] "[32mPOST /admin/refresh-sources HTTP/1.1[0m" 302 -
+2026-02-07 12:09:08,137 INFO 127.0.0.1 - - [07/Feb/2026 12:09:08] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:09:08,160 INFO 127.0.0.1 - - [07/Feb/2026 12:09:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:09:09,465 INFO 127.0.0.1 - - [07/Feb/2026 12:09:09] "[32mPOST /admin/refresh-sources HTTP/1.1[0m" 302 -
+2026-02-07 12:09:09,475 INFO 127.0.0.1 - - [07/Feb/2026 12:09:09] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:09:09,497 INFO 127.0.0.1 - - [07/Feb/2026 12:09:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:09:10,472 INFO 127.0.0.1 - - [07/Feb/2026 12:09:10] "[32mPOST /admin/send-alerts HTTP/1.1[0m" 302 -
+2026-02-07 12:09:10,483 INFO 127.0.0.1 - - [07/Feb/2026 12:09:10] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:09:10,504 INFO 127.0.0.1 - - [07/Feb/2026 12:09:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:09:55,322 INFO 127.0.0.1 - - [07/Feb/2026 12:09:55] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:09:55,343 INFO 127.0.0.1 - - [07/Feb/2026 12:09:55] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:11:30,466 INFO 127.0.0.1 - - [07/Feb/2026 12:11:30] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:11:30,485 INFO 127.0.0.1 - - [07/Feb/2026 12:11:30] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:11:46,704 INFO 127.0.0.1 - - [07/Feb/2026 12:11:46] "GET /profile HTTP/1.1" 200 -
+2026-02-07 12:11:46,731 INFO 127.0.0.1 - - [07/Feb/2026 12:11:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:11:50,900 INFO 127.0.0.1 - - [07/Feb/2026 12:11:50] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 12:11:50,926 INFO 127.0.0.1 - - [07/Feb/2026 12:11:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:11:52,015 INFO 127.0.0.1 - - [07/Feb/2026 12:11:52] "GET /insights HTTP/1.1" 200 -
+2026-02-07 12:11:52,043 INFO 127.0.0.1 - - [07/Feb/2026 12:11:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:11:54,087 INFO 127.0.0.1 - - [07/Feb/2026 12:11:54] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:11:54,116 INFO 127.0.0.1 - - [07/Feb/2026 12:11:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:11:58,152 INFO 127.0.0.1 - - [07/Feb/2026 12:11:58] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:11:58,179 INFO 127.0.0.1 - - [07/Feb/2026 12:11:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:11:59,818 INFO 127.0.0.1 - - [07/Feb/2026 12:11:59] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:11:59,847 INFO 127.0.0.1 - - [07/Feb/2026 12:11:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:20:02,872 INFO 127.0.0.1 - - [07/Feb/2026 12:20:02] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:20:02,892 INFO 127.0.0.1 - - [07/Feb/2026 12:20:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:43,377 INFO 127.0.0.1 - - [07/Feb/2026 12:23:43] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:23:43,403 INFO 127.0.0.1 - - [07/Feb/2026 12:23:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:44,916 INFO 127.0.0.1 - - [07/Feb/2026 12:23:44] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:23:44,941 INFO 127.0.0.1 - - [07/Feb/2026 12:23:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:45,874 INFO 127.0.0.1 - - [07/Feb/2026 12:23:45] "GET /insights HTTP/1.1" 200 -
+2026-02-07 12:23:45,897 INFO 127.0.0.1 - - [07/Feb/2026 12:23:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:46,721 INFO 127.0.0.1 - - [07/Feb/2026 12:23:46] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 12:23:46,747 INFO 127.0.0.1 - - [07/Feb/2026 12:23:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:47,597 INFO 127.0.0.1 - - [07/Feb/2026 12:23:47] "GET /profile HTTP/1.1" 200 -
+2026-02-07 12:23:47,622 INFO 127.0.0.1 - - [07/Feb/2026 12:23:47] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:23:48,794 INFO 127.0.0.1 - - [07/Feb/2026 12:23:48] "GET / HTTP/1.1" 200 -
+2026-02-07 12:23:48,821 INFO 127.0.0.1 - - [07/Feb/2026 12:23:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:24:57,499 INFO 127.0.0.1 - - [07/Feb/2026 12:24:57] "GET / HTTP/1.1" 200 -
+2026-02-07 12:24:57,520 INFO 127.0.0.1 - - [07/Feb/2026 12:24:57] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:25:08,148 INFO 127.0.0.1 - - [07/Feb/2026 12:25:08] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:25:08,178 INFO 127.0.0.1 - - [07/Feb/2026 12:25:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:29:48,567 INFO 127.0.0.1 - - [07/Feb/2026 12:29:48] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:29:48,601 INFO 127.0.0.1 - - [07/Feb/2026 12:29:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:29:58,584 INFO 127.0.0.1 - - [07/Feb/2026 12:29:58] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:29:58,621 INFO 127.0.0.1 - - [07/Feb/2026 12:29:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:29:59,669 INFO 127.0.0.1 - - [07/Feb/2026 12:29:59] "GET /insights HTTP/1.1" 200 -
+2026-02-07 12:29:59,699 INFO 127.0.0.1 - - [07/Feb/2026 12:29:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:02,316 INFO 127.0.0.1 - - [07/Feb/2026 12:30:02] "GET / HTTP/1.1" 200 -
+2026-02-07 12:30:02,349 INFO 127.0.0.1 - - [07/Feb/2026 12:30:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:04,475 INFO 127.0.0.1 - - [07/Feb/2026 12:30:04] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:30:04,505 INFO 127.0.0.1 - - [07/Feb/2026 12:30:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:10,853 INFO 127.0.0.1 - - [07/Feb/2026 12:30:10] "GET /alerts HTTP/1.1" 200 -
+2026-02-07 12:30:10,884 INFO 127.0.0.1 - - [07/Feb/2026 12:30:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:14,842 INFO 127.0.0.1 - - [07/Feb/2026 12:30:14] "GET /saved HTTP/1.1" 200 -
+2026-02-07 12:30:14,874 INFO 127.0.0.1 - - [07/Feb/2026 12:30:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:18,346 INFO 127.0.0.1 - - [07/Feb/2026 12:30:18] "GET /profile HTTP/1.1" 200 -
+2026-02-07 12:30:18,376 INFO 127.0.0.1 - - [07/Feb/2026 12:30:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:20,509 INFO 127.0.0.1 - - [07/Feb/2026 12:30:20] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:30:20,545 INFO 127.0.0.1 - - [07/Feb/2026 12:30:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:21,941 INFO 127.0.0.1 - - [07/Feb/2026 12:30:21] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:30:21,974 INFO 127.0.0.1 - - [07/Feb/2026 12:30:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:35,919 INFO 127.0.0.1 - - [07/Feb/2026 12:30:35] "[32mPOST /admin/backup-db HTTP/1.1[0m" 302 -
+2026-02-07 12:30:35,933 INFO 127.0.0.1 - - [07/Feb/2026 12:30:35] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:30:35,958 INFO 127.0.0.1 - - [07/Feb/2026 12:30:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:43,725 INFO 127.0.0.1 - - [07/Feb/2026 12:30:43] "GET /admin/ai-recommendations HTTP/1.1" 200 -
+2026-02-07 12:30:43,753 INFO 127.0.0.1 - - [07/Feb/2026 12:30:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:51,598 INFO 127.0.0.1 - - [07/Feb/2026 12:30:51] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:30:51,640 INFO 127.0.0.1 - - [07/Feb/2026 12:30:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:30:52,275 INFO 127.0.0.1 - - [07/Feb/2026 12:30:52] "GET / HTTP/1.1" 200 -
+2026-02-07 12:30:52,307 INFO 127.0.0.1 - - [07/Feb/2026 12:30:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:32:43,691 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:32:43,812 INFO  * Restarting with stat
+2026-02-07 12:32:44,602 WARNING  * Debugger is active!
+2026-02-07 12:32:44,606 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:32:59,056 INFO 127.0.0.1 - - [07/Feb/2026 12:32:59] "GET / HTTP/1.1" 200 -
+2026-02-07 12:32:59,169 INFO 127.0.0.1 - - [07/Feb/2026 12:32:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:33:00,916 INFO 127.0.0.1 - - [07/Feb/2026 12:33:00] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:33:00,949 INFO 127.0.0.1 - - [07/Feb/2026 12:33:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:33:02,095 INFO 127.0.0.1 - - [07/Feb/2026 12:33:02] "GET /admin HTTP/1.1" 200 -
+2026-02-07 12:33:02,123 INFO 127.0.0.1 - - [07/Feb/2026 12:33:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:33:06,007 INFO 127.0.0.1 - - [07/Feb/2026 12:33:06] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-02-07 12:33:06,016 INFO 127.0.0.1 - - [07/Feb/2026 12:33:06] "GET / HTTP/1.1" 200 -
+2026-02-07 12:33:06,047 INFO 127.0.0.1 - - [07/Feb/2026 12:33:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:33:09,155 INFO 127.0.0.1 - - [07/Feb/2026 12:33:09] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2026-02-07 12:33:09,166 INFO 127.0.0.1 - - [07/Feb/2026 12:33:09] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:33:09,192 INFO 127.0.0.1 - - [07/Feb/2026 12:33:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:34:05,503 INFO 127.0.0.1 - - [07/Feb/2026 12:34:05] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:34:05,523 INFO 127.0.0.1 - - [07/Feb/2026 12:34:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:34:39,581 INFO 127.0.0.1 - - [07/Feb/2026 12:34:39] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:34:39,604 INFO 127.0.0.1 - - [07/Feb/2026 12:34:39] "GET /static/style.css HTTP/1.1" 200 -
+2026-02-07 12:35:01,194 INFO 127.0.0.1 - - [07/Feb/2026 12:35:01] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-07 12:35:01,207 INFO 127.0.0.1 - - [07/Feb/2026 12:35:01] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:35:01,228 INFO 127.0.0.1 - - [07/Feb/2026 12:35:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:35:34,393 INFO 127.0.0.1 - - [07/Feb/2026 12:35:34] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-07 12:35:34,416 INFO 127.0.0.1 - - [07/Feb/2026 12:35:34] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:35:34,451 INFO 127.0.0.1 - - [07/Feb/2026 12:35:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:35:44,141 INFO 127.0.0.1 - - [07/Feb/2026 12:35:44] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 12:35:44,173 INFO 127.0.0.1 - - [07/Feb/2026 12:35:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:35:45,332 INFO 127.0.0.1 - - [07/Feb/2026 12:35:45] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:35:45,361 INFO 127.0.0.1 - - [07/Feb/2026 12:35:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:37:31,278 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:37:31,334 INFO  * Restarting with stat
+2026-02-07 12:37:31,991 WARNING  * Debugger is active!
+2026-02-07 12:37:31,998 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:37:39,379 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:37:39,476 INFO  * Restarting with stat
+2026-02-07 12:37:40,208 WARNING  * Debugger is active!
+2026-02-07 12:37:40,213 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:37:46,554 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:37:46,657 INFO  * Restarting with stat
+2026-02-07 12:37:47,367 WARNING  * Debugger is active!
+2026-02-07 12:37:47,374 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:37:55,787 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:37:55,839 INFO  * Restarting with stat
+2026-02-07 12:37:56,491 WARNING  * Debugger is active!
+2026-02-07 12:37:56,496 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:38:13,290 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:38:13,404 INFO  * Restarting with stat
+2026-02-07 12:38:14,148 WARNING  * Debugger is active!
+2026-02-07 12:38:14,154 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:39:16,250 INFO 127.0.0.1 - - [07/Feb/2026 12:39:16] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:39:16,372 INFO 127.0.0.1 - - [07/Feb/2026 12:39:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:39:18,265 INFO 127.0.0.1 - - [07/Feb/2026 12:39:18] "[32mGET /logout HTTP/1.1[0m" 302 -
+2026-02-07 12:39:18,281 INFO 127.0.0.1 - - [07/Feb/2026 12:39:18] "GET / HTTP/1.1" 200 -
+2026-02-07 12:39:18,311 INFO 127.0.0.1 - - [07/Feb/2026 12:39:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:39:19,559 INFO 127.0.0.1 - - [07/Feb/2026 12:39:19] "[32mGET /submit HTTP/1.1[0m" 302 -
+2026-02-07 12:39:19,571 INFO 127.0.0.1 - - [07/Feb/2026 12:39:19] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:39:19,599 INFO 127.0.0.1 - - [07/Feb/2026 12:39:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:39:20,399 INFO 127.0.0.1 - - [07/Feb/2026 12:39:20] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2026-02-07 12:39:20,407 INFO 127.0.0.1 - - [07/Feb/2026 12:39:20] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:39:20,427 INFO 127.0.0.1 - - [07/Feb/2026 12:39:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:39:27,090 INFO 127.0.0.1 - - [07/Feb/2026 12:39:27] "[32mPOST /login/otp/request HTTP/1.1[0m" 302 -
+2026-02-07 12:39:27,097 INFO 127.0.0.1 - - [07/Feb/2026 12:39:27] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:39:27,118 INFO 127.0.0.1 - - [07/Feb/2026 12:39:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:41:56,169 INFO 127.0.0.1 - - [07/Feb/2026 12:41:56] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:41:56,188 INFO 127.0.0.1 - - [07/Feb/2026 12:41:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:42:00,591 INFO 127.0.0.1 - - [07/Feb/2026 12:42:00] "[32mPOST /login/otp/request HTTP/1.1[0m" 302 -
+2026-02-07 12:42:00,599 INFO 127.0.0.1 - - [07/Feb/2026 12:42:00] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:42:00,622 INFO 127.0.0.1 - - [07/Feb/2026 12:42:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:55:09,989 INFO 127.0.0.1 - - [07/Feb/2026 12:55:09] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:55:10,005 INFO 127.0.0.1 - - [07/Feb/2026 12:55:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:55:17,759 INFO 127.0.0.1 - - [07/Feb/2026 12:55:17] "[32mPOST /login/otp/request HTTP/1.1[0m" 302 -
+2026-02-07 12:55:17,768 INFO 127.0.0.1 - - [07/Feb/2026 12:55:17] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:55:17,792 INFO 127.0.0.1 - - [07/Feb/2026 12:55:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:56:11,350 INFO  * Detected change in 'C:\\delay\\app.py', reloading
+2026-02-07 12:56:11,415 INFO  * Restarting with stat
+2026-02-07 12:56:12,081 WARNING  * Debugger is active!
+2026-02-07 12:56:12,085 INFO  * Debugger PIN: 108-268-275
+2026-02-07 12:56:45,432 INFO 127.0.0.1 - - [07/Feb/2026 12:56:45] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:56:45,546 INFO 127.0.0.1 - - [07/Feb/2026 12:56:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:56:49,659 INFO 127.0.0.1 - - [07/Feb/2026 12:56:49] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:56:49,681 INFO 127.0.0.1 - - [07/Feb/2026 12:56:49] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:36,210 INFO 127.0.0.1 - - [07/Feb/2026 12:57:36] "GET /login HTTP/1.1" 200 -
+2026-02-07 12:57:36,234 INFO 127.0.0.1 - - [07/Feb/2026 12:57:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:46,857 INFO 127.0.0.1 - - [07/Feb/2026 12:57:46] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-07 12:57:46,890 INFO 127.0.0.1 - - [07/Feb/2026 12:57:46] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:57:46,925 INFO 127.0.0.1 - - [07/Feb/2026 12:57:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:53,554 INFO 127.0.0.1 - - [07/Feb/2026 12:57:53] "GET /profile HTTP/1.1" 200 -
+2026-02-07 12:57:53,582 INFO 127.0.0.1 - - [07/Feb/2026 12:57:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:54,640 INFO 127.0.0.1 - - [07/Feb/2026 12:57:54] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 12:57:54,666 INFO 127.0.0.1 - - [07/Feb/2026 12:57:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:55,883 INFO 127.0.0.1 - - [07/Feb/2026 12:57:55] "GET /insights HTTP/1.1" 200 -
+2026-02-07 12:57:55,912 INFO 127.0.0.1 - - [07/Feb/2026 12:57:55] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:56,967 INFO 127.0.0.1 - - [07/Feb/2026 12:57:56] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 12:57:56,993 INFO 127.0.0.1 - - [07/Feb/2026 12:57:56] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:57,912 INFO 127.0.0.1 - - [07/Feb/2026 12:57:57] "GET /submit HTTP/1.1" 200 -
+2026-02-07 12:57:57,940 INFO 127.0.0.1 - - [07/Feb/2026 12:57:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 12:57:58,915 INFO 127.0.0.1 - - [07/Feb/2026 12:57:58] "GET /opportunities HTTP/1.1" 200 -
+2026-02-07 12:57:58,948 INFO 127.0.0.1 - - [07/Feb/2026 12:57:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:04,771 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-02-07 13:08:04,771 INFO [33mPress CTRL+C to quit[0m
+2026-02-07 13:08:04,774 INFO  * Restarting with stat
+2026-02-07 13:08:05,467 WARNING  * Debugger is active!
+2026-02-07 13:08:05,474 INFO  * Debugger PIN: 108-268-275
+2026-02-07 13:08:18,780 INFO 127.0.0.1 - - [07/Feb/2026 13:08:18] "GET / HTTP/1.1" 200 -
+2026-02-07 13:08:18,925 INFO 127.0.0.1 - - [07/Feb/2026 13:08:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:19,120 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-02-07 13:08:19,125 INFO 127.0.0.1 - - [07/Feb/2026 13:08:19] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-02-07 13:08:26,977 INFO 127.0.0.1 - - [07/Feb/2026 13:08:26] "GET /preferences HTTP/1.1" 200 -
+2026-02-07 13:08:27,008 INFO 127.0.0.1 - - [07/Feb/2026 13:08:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:27,081 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-02-07 13:08:27,083 INFO 127.0.0.1 - - [07/Feb/2026 13:08:27] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-02-07 13:08:27,712 INFO 127.0.0.1 - - [07/Feb/2026 13:08:27] "GET /insights HTTP/1.1" 200 -
+2026-02-07 13:08:27,740 INFO 127.0.0.1 - - [07/Feb/2026 13:08:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:27,791 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-02-07 13:08:27,793 INFO 127.0.0.1 - - [07/Feb/2026 13:08:27] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-02-07 13:08:28,455 INFO 127.0.0.1 - - [07/Feb/2026 13:08:28] "GET /dashboard HTTP/1.1" 200 -
+2026-02-07 13:08:28,485 INFO 127.0.0.1 - - [07/Feb/2026 13:08:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:28,591 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-02-07 13:08:28,594 INFO 127.0.0.1 - - [07/Feb/2026 13:08:28] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+2026-02-07 13:08:57,788 INFO 127.0.0.1 - - [07/Feb/2026 13:08:57] "GET / HTTP/1.1" 200 -
+2026-02-07 13:08:57,817 INFO 127.0.0.1 - - [07/Feb/2026 13:08:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2026-02-07 13:08:58,011 ERROR Unhandled error
+Traceback (most recent call last):
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\flask\ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\deepu\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2026-02-07 13:08:58,013 INFO 127.0.0.1 - - [07/Feb/2026 13:08:58] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -

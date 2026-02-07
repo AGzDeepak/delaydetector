@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Sign In · Awareness Delay{% endblock %}
+{% block content %}
+<div class="auth-container">
+  <div class="glass-card">
+    <div class="glass-header">
+      <h2>🔐 Sign In</h2>
+      <p class="subtitle">Access your opportunity insights</p>
+    </div>
+    
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-error">
+          {% for m in messages %}
+            <p>{{ m }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="glass-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-group">
+        <label for="username">👤 Username</label>
+        <input id="username" name="username" type="text" placeholder="Enter your username" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">🔑 Password</label>
+        <input id="password" name="password" type="password" placeholder="Enter your password" required>
+      </div>
+
+      <button type="submit" class="glass-btn glass-btn-primary">✅ Sign In</button>
+    </form>
+
+    <div class="divider">or continue with</div>
+
+    <div class="social-login">
+      <a href="#" class="social-btn google" title="Sign in with Google">Google</a>
+      <a href="#" class="social-btn github" title="Sign in with GitHub">GitHub</a>
+      <a href="#" class="social-btn facebook" title="Sign in with Facebook">Facebook</a>
+    </div>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a href="/register" class="link">📝 Register for free</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

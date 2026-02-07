@@ -1,0 +1,1971 @@
+from flask import Flask, render_template, request, redirect, url_for, g, session, flash, abort
+import sqlite3
+from datetime import datetime, timedelta
+from urllib.request import Request, urlopen
+from urllib.error import URLError
+import xml.etree.ElementTree as ET
+from pathlib import Path
+import json
+import os
+import threading
+import time
+import smtplib
+from email.message import EmailMessage
+import logging
+import secrets
+import shutil
+
+APP_DIR = Path(__file__).parent
+DB_PATH = APP_DIR / 'data.db'
+
+def load_env_file(path):
+    if not path.exists():
+        return
+    try:
+        for raw in path.read_text(encoding='utf-8').splitlines():
+            line = raw.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+    except Exception:
+        pass
+
+load_env_file(APP_DIR / '.env')
+EXTERNAL_REFRESH_MINUTES = int(os.environ.get('EXTERNAL_REFRESH_MINUTES', '720'))
+EXTERNAL_MAX_PER_SOURCE = int(os.environ.get('EXTERNAL_MAX_PER_SOURCE', '200'))
+OPPS_PAGE_SIZE = int(os.environ.get('OPPS_PAGE_SIZE', '24'))
+AUTO_REFRESH_EXTERNAL = os.environ.get('AUTO_REFRESH_EXTERNAL', '0') == '1'
+
+app = Flask(__name__)
+app.secret_key = 'dev-secret-change-me'
+app.permanent_session_lifetime = timedelta(minutes=30)
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
+RATE_LIMIT = {}
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DB_PATH)
+        db.row_factory = sqlite3.Row
+    return db
+
+def get_csrf_token():
+    token = session.get('csrf_token')
+    if not token:
+        token = secrets.token_hex(16)
+        session['csrf_token'] = token
+    return token
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': get_csrf_token()}
+
+def verify_csrf():
+    token = session.get('csrf_token')
+    form_token = request.form.get('csrf_token')
+    return token and form_token and token == form_token
+
+def is_rate_limited(key, limit=5, window_seconds=60):
+    now = time.time()
+    entries = RATE_LIMIT.get(key, [])
+    entries = [t for t in entries if now - t < window_seconds]
+    if len(entries) >= limit:
+        RATE_LIMIT[key] = entries
+        return True
+    entries.append(now)
+    RATE_LIMIT[key] = entries
+    return False
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+def init_db():
+    db = sqlite3.connect(DB_PATH)
+    db.row_factory = sqlite3.Row
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        email TEXT UNIQUE,
+        role TEXT DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS admins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE NOT NULL,
+        admin_since TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS awareness_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        opportunity_name TEXT NOT NULL,
+        announcement_date TEXT NOT NULL,
+        awareness_date TEXT NOT NULL,
+        deadline TEXT NOT NULL,
+        delay_days INTEGER,
+        delay_category TEXT,
+        delay_ratio REAL,
+        college_type TEXT,
+        region TEXT,
+        description TEXT,
+        status TEXT DEFAULT 'submitted',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        opportunity_name TEXT NOT NULL,
+        announcement_date TEXT NOT NULL,
+        awareness_date TEXT NOT NULL,
+        deadline TEXT NOT NULL,
+        college_type TEXT,
+        region TEXT,
+        description TEXT,
+        status TEXT DEFAULT 'submitted',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        action TEXT NOT NULL,
+        table_name TEXT,
+        record_id INTEGER,
+        changes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS auth_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        username TEXT,
+        event TEXT NOT NULL,
+        ip_address TEXT,
+        user_agent TEXT,
+        success INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS external_sources (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        last_fetched TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS external_opportunities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        company TEXT,
+        type TEXT,
+        region TEXT,
+        deadline TEXT,
+        url TEXT,
+        description TEXT,
+        salary TEXT,
+        duration TEXT,
+        online INTEGER DEFAULT 0,
+        source TEXT,
+        approved INTEGER DEFAULT 0,
+        fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (source_id) REFERENCES external_sources (id)
+    )
+    ''')
+    # Migrations for existing databases
+    cols = [r['name'] for r in db.execute("PRAGMA table_info(external_opportunities)").fetchall()]
+    if 'approved' not in cols:
+        db.execute('ALTER TABLE external_opportunities ADD COLUMN approved INTEGER DEFAULT 0')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS user_profiles (
+        user_id INTEGER PRIMARY KEY,
+        full_name TEXT,
+        college TEXT,
+        degree TEXT,
+        graduation_year TEXT,
+        skills TEXT,
+        preferred_regions TEXT,
+        preferred_roles TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS login_otp (
+        email TEXT PRIMARY KEY,
+        code_hash TEXT NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INTEGER PRIMARY KEY,
+        regions TEXT,
+        types TEXT,
+        keywords TEXT,
+        alert_channels TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS saved_opportunities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        source_id INTEGER,
+        title TEXT NOT NULL,
+        url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS alert_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        channel TEXT NOT NULL,
+        source TEXT NOT NULL,
+        source_id INTEGER,
+        title TEXT NOT NULL,
+        url TEXT,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, channel, source, source_id)
+    )
+    ''')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_admins_user_id ON admins (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_awareness_user_id ON awareness_data (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_awareness_opportunity ON awareness_data (opportunity_name)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_awareness_category ON awareness_data (delay_category)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_awareness_region ON awareness_data (region)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_awareness_created ON awareness_data (created_at)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_submissions_created ON submissions (created_at)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_sources_active ON external_sources (active)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_external_source_id ON external_opportunities (source_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_external_fetched ON external_opportunities (fetched_at)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_external_approved ON external_opportunities (approved)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_saved_user ON saved_opportunities (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_alert_user ON alert_queue (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_auth_user ON auth_log (user_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_auth_event ON auth_log (event)')
+    db.execute('CREATE INDEX IF NOT EXISTS idx_login_otp_expires ON login_otp (expires_at)')
+    db.commit()
+    # seed a default user for testing if none exist
+    cur = db.execute('SELECT COUNT(*) as c FROM users')
+    row = cur.fetchone()
+    if row and row[0] == 0:
+        db.execute('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+                   ('admin', generate_password_hash('password'), 'admin'))
+        db.commit()
+    # ensure admins table is synced for any existing admin users
+    db.execute('''
+        INSERT OR IGNORE INTO admins (user_id)
+        SELECT id FROM users WHERE role = 'admin'
+    ''')
+    db.commit()
+    db.close()
+
+def is_admin_user(user_id, db):
+    row = db.execute('SELECT 1 FROM admins WHERE user_id = ?', (user_id,)).fetchone()
+    return row is not None
+
+def log_audit(db, user_id, action, table_name=None, record_id=None, changes=None):
+    db.execute('''INSERT INTO audit_log (user_id, action, table_name, record_id, changes)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (user_id, action, table_name, record_id, changes))
+
+def log_auth_event(db, user_id, username, event, success=1):
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    ua = request.headers.get('User-Agent', '')
+    db.execute('''INSERT INTO auth_log (user_id, username, event, ip_address, user_agent, success)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (user_id, username, event, ip, ua, success))
+
+def categorize_delay(days):
+    if days is None:
+        return 'Unknown'
+    if days <= 2:
+        return 'Early Access'
+    if 3 <= days <= 7:
+        return 'Medium Delay'
+    return 'Late Access'
+
+def parse_date(s):
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s)
+    except Exception:
+        return None
+
+def validate_password(pw):
+    if not pw or len(pw) < 8:
+        return False
+    has_letter = any(c.isalpha() for c in pw)
+    has_digit = any(c.isdigit() for c in pw)
+    return has_letter and has_digit
+
+# AI-based opportunity recommendation system
+def get_opportunity_keywords(opportunity_name):
+    """Extract keywords from opportunity name for AI recommendation"""
+    keywords = opportunity_name.lower().split()
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'for', 'is', 'at', 'to', 'from'}
+    return [k for k in keywords if k not in stop_words and len(k) > 2]
+
+def normalize_text(s):
+    return ''.join(ch for ch in (s or '').lower() if ch.isalnum() or ch.isspace()).strip()
+
+def categorize_opportunity(title, description=''):
+    text = f"{title} {description}".lower()
+    if any(k in text for k in ['intern', 'internship', 'summer intern']):
+        return 'Internship'
+    if any(k in text for k in ['scholarship', 'grant', 'fellowship']):
+        return 'Scholarship/Fellowship'
+    if any(k in text for k in ['hackathon', 'competition']):
+        return 'Hackathon'
+    if any(k in text for k in ['bootcamp', 'training', 'academy']):
+        return 'Training'
+    return 'Opportunity'
+
+def summarize_opportunity(description):
+    if not description:
+        return ''
+    clean = ' '.join(description.split())
+    return clean[:160] + ('…' if len(clean) > 160 else '')
+
+def compute_relevance(opp, prefs):
+    if not prefs:
+        return 0
+    score = 0
+    title = (opp.get('title') or '').lower()
+    company = (opp.get('company') or '').lower()
+    region = (opp.get('region') or '').lower()
+    opp_type = (opp.get('type') or '').lower()
+    keywords = [k.strip().lower() for k in (prefs.get('keywords') or '').split(',') if k.strip()]
+    regions = [r.strip().lower() for r in (prefs.get('regions') or '').split(',') if r.strip()]
+    types = [t.strip().lower() for t in (prefs.get('types') or '').split(',') if t.strip()]
+    for k in keywords:
+        if k in title or k in company:
+            score += 2
+    for r in regions:
+        if r in region:
+            score += 1
+    for t in types:
+        if t in opp_type:
+            score += 1
+    return score
+
+def find_similar_opportunities(opportunity_name, db):
+    """AI function: Find similar opportunities based on keyword matching"""
+    keywords = get_opportunity_keywords(opportunity_name)
+    if not keywords:
+        return []
+    
+    similar = []
+    all_opps = db.execute('SELECT DISTINCT opportunity_name FROM awareness_data').fetchall()
+    
+    for opp in all_opps:
+        opp_name = opp['opportunity_name']
+        if opp_name.lower() == opportunity_name.lower():
+            continue
+        
+        opp_keywords = get_opportunity_keywords(opp_name)
+        matches = len(set(keywords) & set(opp_keywords))
+        if matches > 0:
+            similar.append({
+                'name': opp_name,
+                'relevance': matches,
+                'keywords': list(set(keywords) & set(opp_keywords))
+            })
+    
+    similar.sort(key=lambda x: x['relevance'], reverse=True)
+    return similar[:5]
+
+def get_opp_recommendations_by_category(college_type, region, db):
+    """AI function: Get opportunity recommendations by college type and region"""
+    try:
+        recommendations = db.execute('''
+            SELECT opportunity_name, college_type, region, delay_category, COUNT(*) as count
+            FROM awareness_data
+            WHERE (college_type = ? OR region = ?)
+            GROUP BY opportunity_name
+            ORDER BY count DESC LIMIT 10
+        ''', (college_type, region)).fetchall()
+        return [dict(r) for r in recommendations]
+    except:
+        return []
+
+def get_online_opportunities():
+    """Fetch real opportunities from online sources for demo recommendations"""
+    demo_opportunities = [
+        {
+            'title': 'Google Summer Internship 2026',
+            'company': 'Google',
+            'type': 'Internship',
+            'region': 'Multiple (Global)',
+            'deadline': '2026-03-15',
+            'url': 'https://careers.google.com/internships/',
+            'description': 'Paid internship at Google offices worldwide',
+            'salary': '$25-35/hour',
+            'duration': '12 weeks',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Microsoft TEALS Fellowship',
+            'company': 'Microsoft',
+            'type': 'Fellowship',
+            'region': 'USA + International',
+            'deadline': '2026-04-01',
+            'url': 'https://www.microsoft.com/en-us/teals',
+            'description': 'Tech education and mentorship program',
+            'salary': 'Scholarship',
+            'duration': 'Full Year',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Goldman Sachs Internship Program',
+            'company': 'Goldman Sachs',
+            'type': 'Internship',
+            'region': 'USA, Europe, Asia',
+            'deadline': '2026-02-28',
+            'url': 'https://www.goldmansachs.com/careers/',
+            'description': 'Summer analyst program with mentorship',
+            'salary': '$30-40/hour',
+            'duration': '10 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Accenture Cloud Academy',
+            'company': 'Accenture',
+            'type': 'Training + Internship',
+            'region': 'India, USA',
+            'deadline': '2026-03-31',
+            'url': 'https://www.accenture.com/careers/',
+            'description': 'Cloud technology training and internship',
+            'salary': 'Stipend + Offer',
+            'duration': '3-6 months',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'McKinsey Forward Program',
+            'company': 'McKinsey & Company',
+            'type': 'Consulting Internship',
+            'region': 'Global',
+            'deadline': '2026-03-20',
+            'url': 'https://www.mckinsey.com/careers/',
+            'description': 'Leadership development and consulting experience',
+            'salary': '$40-50/hour',
+            'duration': '8-12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Amazon Leadership Development Internship',
+            'company': 'Amazon',
+            'type': 'Internship',
+            'region': 'USA, Europe, India',
+            'deadline': '2026-04-10',
+            'url': 'https://www.amazon.jobs/internships',
+            'description': 'Tech and business internship with leadership focus',
+            'salary': '$28-38/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'JPMorgan Chase Code for Good',
+            'company': 'JPMorgan Chase',
+            'type': 'Hackathon + Internship',
+            'region': 'USA, Europe, Asia',
+            'deadline': '2026-03-15',
+            'url': 'https://www.jpmorganchase.com/careers',
+            'description': 'Tech hackathon for social impact + job opportunities',
+            'salary': 'Award + Internship',
+            'duration': 'Variable',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Deloitte Discovery Internship',
+            'company': 'Deloitte',
+            'type': 'Internship',
+            'region': 'USA, Asia, Europe',
+            'deadline': '2026-04-05',
+            'url': 'https://www2.deloitte.com/careers/',
+            'description': 'Consulting and advisory internship program',
+            'salary': '$26-36/hour',
+            'duration': '10 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Meta (Facebook) Internship',
+            'company': 'Meta',
+            'type': 'Internship',
+            'region': 'USA, Europe, Asia',
+            'deadline': '2026-03-30',
+            'url': 'https://www.metacareers.com/internships',
+            'description': 'Software engineering and business internship',
+            'salary': '$30-40/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Apple Internship Programs',
+            'company': 'Apple',
+            'type': 'Internship',
+            'region': 'USA, Europe',
+            'deadline': '2026-04-15',
+            'url': 'https://www.apple.com/careers/',
+            'description': 'Hardware and software engineering internships',
+            'salary': '$32-42/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Tesla Leadership Program',
+            'company': 'Tesla',
+            'type': 'Engineering Internship',
+            'region': 'USA, China',
+            'deadline': '2026-03-25',
+            'url': 'https://www.tesla.com/careers/',
+            'description': 'EV and renewable energy engineering internship',
+            'salary': '$28-38/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'BCG Platinion Internship',
+            'company': 'Boston Consulting Group',
+            'type': 'Tech Consulting',
+            'region': 'Global',
+            'deadline': '2026-03-20',
+            'url': 'https://www.bcg.com/careers/',
+            'description': 'Technology and digital strategy consulting',
+            'salary': '$35-45/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'IBM Accelerate Program',
+            'company': 'IBM',
+            'type': 'Early Talent',
+            'region': 'USA, Europe',
+            'deadline': '2026-03-10',
+            'url': 'https://www.ibm.com/careers/',
+            'description': 'Early talent program with mentorship and skills training',
+            'salary': 'Stipend',
+            'duration': '8 weeks',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Salesforce Futureforce Internship',
+            'company': 'Salesforce',
+            'type': 'Internship',
+            'region': 'USA, India, UK',
+            'deadline': '2026-04-08',
+            'url': 'https://www.salesforce.com/company/careers/',
+            'description': 'Software and product internships for students',
+            'salary': '$28-38/hour',
+            'duration': '10-12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'NVIDIA Deep Learning Institute Internship',
+            'company': 'NVIDIA',
+            'type': 'Research Internship',
+            'region': 'USA, Taiwan',
+            'deadline': '2026-03-28',
+            'url': 'https://www.nvidia.com/en-us/about-nvidia/careers/',
+            'description': 'AI research internship with GPU computing focus',
+            'salary': '$32-45/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Intel Software Engineering Internship',
+            'company': 'Intel',
+            'type': 'Internship',
+            'region': 'USA, Israel, India',
+            'deadline': '2026-04-02',
+            'url': 'https://jobs.intel.com/',
+            'description': 'Software engineering internships across business units',
+            'salary': '$27-37/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Adobe Digital Academy',
+            'company': 'Adobe',
+            'type': 'Training + Internship',
+            'region': 'USA',
+            'deadline': '2026-02-22',
+            'url': 'https://www.adobe.com/careers.html',
+            'description': 'Career training with pathway to internships',
+            'salary': 'Stipend + Offer',
+            'duration': '3-4 months',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Stripe University Internship',
+            'company': 'Stripe',
+            'type': 'Internship',
+            'region': 'USA, Ireland',
+            'deadline': '2026-03-18',
+            'url': 'https://stripe.com/jobs',
+            'description': 'Engineering and product internships with impact projects',
+            'salary': '$35-50/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Uber University Program',
+            'company': 'Uber',
+            'type': 'Internship',
+            'region': 'USA, Canada, India',
+            'deadline': '2026-03-26',
+            'url': 'https://www.uber.com/us/en/careers/',
+            'description': 'Software engineering and data internships',
+            'salary': '$30-42/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Airbnb Internship Program',
+            'company': 'Airbnb',
+            'type': 'Internship',
+            'region': 'USA',
+            'deadline': '2026-03-22',
+            'url': 'https://careers.airbnb.com/',
+            'description': 'Product, design, and engineering internships',
+            'salary': '$32-44/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Zoom University Internship',
+            'company': 'Zoom',
+            'type': 'Internship',
+            'region': 'USA',
+            'deadline': '2026-03-12',
+            'url': 'https://careers.zoom.us/',
+            'description': 'Engineering internships focused on collaboration tools',
+            'salary': '$28-38/hour',
+            'duration': '10-12 weeks',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'Snap Research Internship',
+            'company': 'Snap',
+            'type': 'Research Internship',
+            'region': 'USA, France',
+            'deadline': '2026-04-12',
+            'url': 'https://careers.snap.com/',
+            'description': 'Computer vision and AR research internships',
+            'salary': '$35-48/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Palantir Path Internship',
+            'company': 'Palantir',
+            'type': 'Internship',
+            'region': 'USA, UK',
+            'deadline': '2026-03-05',
+            'url': 'https://www.palantir.com/careers/',
+            'description': 'Engineering internships with real-world data problems',
+            'salary': '$38-55/hour',
+            'duration': '10-12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'ServiceNow Summer Internship',
+            'company': 'ServiceNow',
+            'type': 'Internship',
+            'region': 'USA, India',
+            'deadline': '2026-03-29',
+            'url': 'https://careers.servicenow.com/',
+            'description': 'Software engineering and platform internships',
+            'salary': '$26-36/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'Databricks University Internship',
+            'company': 'Databricks',
+            'type': 'Internship',
+            'region': 'USA, Netherlands',
+            'deadline': '2026-04-06',
+            'url': 'https://www.databricks.com/company/careers',
+            'description': 'Data engineering and ML internships',
+            'salary': '$38-52/hour',
+            'duration': '12 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'EY Technology Consulting Internship',
+            'company': 'EY',
+            'type': 'Consulting Internship',
+            'region': 'USA, Europe, India',
+            'deadline': '2026-04-03',
+            'url': 'https://www.ey.com/en_us/careers',
+            'description': 'Technology consulting internships across industries',
+            'salary': '$24-34/hour',
+            'duration': '10 weeks',
+            'online': False,
+            'source': 'Official'
+        },
+        {
+            'title': 'UNICEF Innovation Internship',
+            'company': 'UNICEF',
+            'type': 'Nonprofit Internship',
+            'region': 'Global',
+            'deadline': '2026-03-14',
+            'url': 'https://www.unicef.org/careers',
+            'description': 'Innovation and digital development internships',
+            'salary': 'Stipend',
+            'duration': '12 weeks',
+            'online': True,
+            'source': 'Official'
+        },
+        {
+            'title': 'NASA Pathways Internship',
+            'company': 'NASA',
+            'type': 'Government Internship',
+            'region': 'USA',
+            'deadline': '2026-02-26',
+            'url': 'https://www.nasa.gov/careers/',
+            'description': 'STEM internships with NASA centers',
+            'salary': '$22-30/hour',
+            'duration': '10-16 weeks',
+            'online': False,
+            'source': 'Official'
+        }
+    ]
+    
+    return demo_opportunities
+
+def filter_opportunities(opps, query=None, region=None, internship_type=None):
+    """Filter opportunities from a given list"""
+    
+    if query:
+        query = query.lower()
+        opps = [o for o in opps if query in (o.get('title') or '').lower() or query in (o.get('company') or '').lower()]
+    
+    if region:
+        opps = [o for o in opps if region.lower() in (o.get('region') or '').lower()]
+    
+    if internship_type:
+        opps = [o for o in opps if internship_type.lower() in (o.get('type') or '').lower()]
+    
+    return opps
+
+def _fetch_url(url):
+    req = Request(url, headers={'User-Agent': 'AwarenessDelayBot/1.0'})
+    with urlopen(req, timeout=10) as resp:
+        return resp.read()
+
+def _parse_rss(content, source_name):
+    items = []
+    try:
+        root = ET.fromstring(content)
+        channel = root.find('channel')
+        if channel is None:
+            return items
+        for item in channel.findall('item'):
+            title = (item.findtext('title') or '').strip()
+            link = (item.findtext('link') or '').strip()
+            desc = (item.findtext('description') or '').strip()
+            if not title:
+                continue
+            items.append({
+                'title': title,
+                'company': source_name,
+                'type': 'Opportunity',
+                'region': 'Unknown',
+                'deadline': '',
+                'url': link,
+                'description': desc[:240],
+                'salary': '',
+                'duration': '',
+                'online': True,
+                'source': source_name
+            })
+    except Exception:
+        return []
+    return items
+
+def _parse_json(content, source_name):
+    items = []
+    try:
+        data = json.loads(content.decode('utf-8'))
+    except Exception:
+        return items
+    if isinstance(data, dict) and 'items' in data:
+        data = data['items']
+    if not isinstance(data, list):
+        return items
+    for it in data:
+        if not isinstance(it, dict):
+            continue
+        title = it.get('title') or it.get('name') or it.get('position') or ''
+        if not title:
+            continue
+        items.append({
+            'title': title,
+            'company': it.get('company') or it.get('org') or source_name,
+            'type': it.get('type') or it.get('category') or 'Opportunity',
+            'region': it.get('region') or it.get('location') or 'Unknown',
+            'deadline': it.get('deadline') or it.get('close_date') or '',
+            'url': it.get('url') or it.get('link') or '',
+            'description': (it.get('description') or '')[:240],
+            'salary': it.get('salary') or '',
+            'duration': it.get('duration') or '',
+            'online': bool(it.get('online')) if 'online' in it else True,
+            'source': source_name
+        })
+    return items
+
+def _parse_html(content, source_name):
+    items = []
+    try:
+        text = content.decode('utf-8', errors='ignore')
+    except Exception:
+        return items
+    for line in text.splitlines():
+        if '<a ' in line and 'href=' in line:
+            start = line.find('href=')
+            if start == -1:
+                continue
+            quote = line[start+5:start+6]
+            if quote not in ['"', "'"]:
+                continue
+            end = line.find(quote, start+6)
+            url = line[start+6:end] if end != -1 else ''
+            title_start = line.find('>')
+            title_end = line.find('</a>')
+            title = ''
+            if title_start != -1 and title_end != -1 and title_end > title_start:
+                title = line[title_start+1:title_end].strip()
+            if not title:
+                continue
+            items.append({
+                'title': title,
+                'company': source_name,
+                'type': 'Opportunity',
+                'region': 'Unknown',
+                'deadline': '',
+                'url': url,
+                'description': '',
+                'salary': '',
+                'duration': '',
+                'online': True,
+                'source': source_name
+            })
+            if len(items) >= 50:
+                break
+    return items
+
+def refresh_external_opportunities(db):
+    sources = db.execute('SELECT * FROM external_sources WHERE active = 1').fetchall()
+    total_added = 0
+    preferences = db.execute('SELECT * FROM user_preferences').fetchall()
+    for src in sources:
+        try:
+            content = _fetch_url(src['url'])
+            if src['kind'] == 'rss':
+                items = _parse_rss(content, src['name'])
+            elif src['kind'] == 'json':
+                items = _parse_json(content, src['name'])
+            else:
+                items = _parse_html(content, src['name'])
+        except URLError:
+            continue
+        for item in items:
+            db.execute('''
+                INSERT INTO external_opportunities
+                (source_id, title, company, type, region, deadline, url, description, salary, duration, online, source, approved)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ''', (
+                src['id'], item['title'], item['company'], item['type'], item['region'],
+                item['deadline'], item['url'], item['description'], item['salary'],
+                item['duration'], 1 if item['online'] else 0, item['source'], 0
+            ))
+        db.execute('UPDATE external_sources SET last_fetched = CURRENT_TIMESTAMP WHERE id = ?', (src['id'],))
+        db.execute('''
+            DELETE FROM external_opportunities
+            WHERE source_id = ?
+              AND id NOT IN (
+                SELECT id FROM external_opportunities
+                WHERE source_id = ?
+                ORDER BY fetched_at DESC, id DESC
+                LIMIT ?
+              )
+        ''', (src['id'], src['id'], EXTERNAL_MAX_PER_SOURCE))
+        total_added += len(items)
+    db.commit()
+    return total_added
+
+def get_external_opportunities(db, limit=None, include_unapproved=False):
+    sql = 'SELECT * FROM external_opportunities'
+    if not include_unapproved:
+        sql += ' WHERE approved = 1'
+    sql += ' ORDER BY fetched_at DESC'
+    if limit:
+        sql += f' LIMIT {int(limit)}'
+    rows = db.execute(sql).fetchall()
+    return [dict(r) for r in rows]
+
+def enrich_opportunities(opps, prefs=None):
+    seen = set()
+    enriched = []
+    for opp in opps:
+        title = opp.get('title') or ''
+        company = opp.get('company') or ''
+        key = f"{normalize_text(title)}|{normalize_text(company)}"
+        if key in seen:
+            continue
+        seen.add(key)
+        opp['category'] = categorize_opportunity(title, opp.get('description') or '')
+        opp['summary'] = summarize_opportunity(opp.get('description') or '')
+        opp['relevance'] = compute_relevance(opp, prefs) if prefs else 0
+        enriched.append(opp)
+    return enriched
+
+def get_live_opportunities(db, limit=None, user_id=None, include_unapproved=False):
+    if AUTO_REFRESH_EXTERNAL:
+        last = db.execute('SELECT MAX(last_fetched) as lf FROM external_sources WHERE active = 1').fetchone()
+        has_sources = db.execute('SELECT 1 FROM external_sources WHERE active = 1 LIMIT 1').fetchone() is not None
+        if has_sources and last and last['lf']:
+            try:
+                lf_dt = datetime.fromisoformat(last['lf'])
+                if datetime.utcnow() - lf_dt > timedelta(minutes=EXTERNAL_REFRESH_MINUTES):
+                    refresh_external_opportunities(db)
+            except Exception:
+                pass
+    external = get_external_opportunities(db, limit=limit, include_unapproved=include_unapproved)
+    if external:
+        prefs = None
+        if user_id:
+            pref = db.execute('SELECT * FROM user_preferences WHERE user_id = ?', (user_id,)).fetchone()
+            prefs = dict(pref) if pref else None
+        return enrich_opportunities(external, prefs=prefs)
+    demo = get_online_opportunities()
+    prefs = None
+    if user_id:
+        pref = db.execute('SELECT * FROM user_preferences WHERE user_id = ?', (user_id,)).fetchone()
+        prefs = dict(pref) if pref else None
+    demo = demo[:limit] if limit else demo
+    return enrich_opportunities(demo, prefs=prefs)
+
+def send_pending_alerts(db):
+    host = os.environ.get('SMTP_HOST')
+    port = int(os.environ.get('SMTP_PORT', '587'))
+    user = os.environ.get('SMTP_USER')
+    password = os.environ.get('SMTP_PASS')
+    sender = os.environ.get('SMTP_FROM') or user
+    if not host or not user or not password:
+        return 0
+    rows = db.execute('''
+        SELECT a.id, a.user_id, a.title, a.url, a.channel, u.email
+        FROM alert_queue a
+        JOIN users u ON u.id = a.user_id
+        WHERE a.status = 'pending' AND a.channel = 'email' AND u.email IS NOT NULL
+        ORDER BY a.created_at ASC
+        LIMIT 50
+    ''').fetchall()
+    if not rows:
+        return 0
+    msg_server = smtplib.SMTP(host, port, timeout=10)
+    msg_server.starttls()
+    msg_server.login(user, password)
+    sent = 0
+    for r in rows:
+        msg = EmailMessage()
+        msg['Subject'] = f"New Opportunity: {r['title']}"
+        msg['From'] = sender
+        msg['To'] = r['email']
+        body = f"{r['title']}\n{r['url'] or ''}\n\nThis matches your preferences."
+        msg.set_content(body)
+        try:
+            msg_server.send_message(msg)
+            db.execute('UPDATE alert_queue SET status = ? WHERE id = ?', ('sent', r['id']))
+            sent += 1
+        except Exception:
+            db.execute('UPDATE alert_queue SET status = ? WHERE id = ?', ('failed', r['id']))
+    db.commit()
+    msg_server.quit()
+    return sent
+
+def backup_database():
+    backup_dir = Path(__file__).parent / 'backups'
+    backup_dir.mkdir(exist_ok=True)
+    ts = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    dest = backup_dir / f"data_backup_{ts}.db"
+    shutil.copy(DB_PATH, dest)
+    return dest
+
+def generate_alerts_for_user(db, user_id, limit=20):
+    pref = db.execute('SELECT * FROM user_preferences WHERE user_id = ?', (user_id,)).fetchone()
+    prefs = dict(pref) if pref else {}
+    channels = (prefs.get('alert_channels') or 'email').split(',')
+    channels = [c.strip() for c in channels if c.strip()]
+    opps = get_live_opportunities(db, user_id=user_id)
+    generated = 0
+    for opp in opps:
+        if generated >= limit:
+            break
+        score = compute_relevance(opp, prefs)
+        if prefs and score < 2:
+            continue
+        for ch in channels:
+            db.execute('''
+                INSERT OR IGNORE INTO alert_queue
+                (user_id, channel, source, source_id, title, url)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user_id, ch, opp.get('source') or 'external', opp.get('id') or 0, opp.get('title'), opp.get('url')))
+        generated += 1
+    db.commit()
+    return generated
+
+def send_test_email(email):
+    host = os.environ.get('SMTP_HOST')
+    port = int(os.environ.get('SMTP_PORT', '587'))
+    user = os.environ.get('SMTP_USER')
+    password = os.environ.get('SMTP_PASS')
+    sender = os.environ.get('SMTP_FROM') or user
+    if not host or not user or not password:
+        return False, 'SMTP not configured'
+    msg_server = smtplib.SMTP(host, port, timeout=10)
+    msg_server.starttls()
+    msg_server.login(user, password)
+    msg = EmailMessage()
+    msg['Subject'] = 'SMTP Test: Awareness Delay'
+    msg['From'] = sender
+    msg['To'] = email
+    msg.set_content('This is a test email from Awareness Delay.')
+    msg_server.send_message(msg)
+    msg_server.quit()
+    return True, None
+
+def send_login_otp_email(email, code):
+    host = os.environ.get('SMTP_HOST')
+    port = int(os.environ.get('SMTP_PORT', '587'))
+    user = os.environ.get('SMTP_USER')
+    password = os.environ.get('SMTP_PASS')
+    sender = os.environ.get('SMTP_FROM') or user
+    if not host or not user or not password:
+        return False, 'SMTP not configured'
+    msg_server = smtplib.SMTP(host, port, timeout=10)
+    msg_server.starttls()
+    msg_server.login(user, password)
+    msg = EmailMessage()
+    msg['Subject'] = 'Your Login OTP - Awareness Delay'
+    msg['From'] = sender
+    msg['To'] = email
+    msg.set_content(f'Your OTP is: {code}\nThis code expires in 10 minutes.')
+    msg_server.send_message(msg)
+    msg_server.quit()
+    return True, None
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logging.exception("Unhandled error")
+    return "An internal error occurred. Please try again later.", 500
+
+@app.before_request
+def enforce_csrf_and_rate_limits():
+    if request.method == 'POST':
+        if request.path not in {'/login', '/register'} and not verify_csrf():
+            abort(400)
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if request.path in {'/login', '/register', '/login/otp/request', '/login/otp/verify'} and request.method == 'POST':
+        if is_rate_limited(f'auth:{ip}', limit=5, window_seconds=60):
+            flash('Too many attempts. Try again shortly.')
+            return redirect(url_for('login') if request.path == '/login' else url_for('register'))
+    if request.path == '/submit' and request.method == 'POST':
+        if is_rate_limited(f'submit:{ip}', limit=8, window_seconds=60):
+            flash('Too many submissions. Please slow down.')
+            return redirect(url_for('submit'))
+
+@app.route('/')
+def index():
+    db = get_db()
+    online_opps = get_live_opportunities(db, limit=8, user_id=session.get('user_id'))
+    return render_template('index.html', online_opps=online_opps)
+
+
+def login_required(f):
+    from functools import wraps
+
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get('user_id'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+
+    return wrapped
+
+def admin_required(f):
+    """Decorator for admin-only routes"""
+    from functools import wraps
+
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get('user_id'):
+            return redirect(url_for('login'))
+        
+        db = get_db()
+        if not is_admin_user(session.get('user_id'), db):
+            flash('Admin access required', 'error')
+            return redirect(url_for('dashboard'))
+        
+        return f(*args, **kwargs)
+
+    return wrapped
+
+@app.route('/submit', methods=['GET', 'POST'])
+@login_required
+def submit():
+    if request.method == 'POST':
+        name = request.form.get('opportunity_name')
+        ann = request.form.get('announcement_date')
+        aware = request.form.get('awareness_date')
+        deadline = request.form.get('deadline')
+        college = request.form.get('college_type')
+        region = request.form.get('region')
+
+        ann_d = parse_date(ann)
+        aware_d = parse_date(aware)
+        dead_d = parse_date(deadline)
+
+        delay_days = None
+        delay_ratio = None
+        if ann_d and aware_d:
+            delta = (aware_d - ann_d).days
+            delay_days = max(0, delta)
+        if ann_d and dead_d:
+            total = (dead_d - ann_d).days
+            if total > 0 and delay_days is not None:
+                delay_ratio = round(delay_days / total, 4)
+
+        delay_category = categorize_delay(delay_days)
+
+        db = get_db()
+        user_id = session.get('user_id')
+        sub_cursor = db.execute('''INSERT INTO submissions
+            (user_id, opportunity_name, announcement_date, awareness_date, deadline, college_type, region)
+            VALUES (?,?,?,?,?,?,?)
+        ''', (user_id, name, ann, aware, deadline, college, region))
+        db.commit()
+        submission_id = sub_cursor.lastrowid
+        cursor = db.execute('''INSERT INTO awareness_data
+            (user_id, opportunity_name, announcement_date, awareness_date, deadline, delay_days, delay_category, delay_ratio, college_type, region)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+        ''', (user_id, name, ann, aware, deadline, delay_days, delay_category, delay_ratio, college, region))
+        db.commit()
+        last_id = cursor.lastrowid
+        
+        # Log the action
+        log_audit(db, user_id, 'INSERT', 'submissions', submission_id, f'Submitted opportunity: {name}')
+        log_audit(db, user_id, 'INSERT', 'awareness_data', last_id, f'Computed metrics for: {name}')
+        db.commit()
+        
+        flash('Data submitted successfully!', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('submit.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = (request.form.get('email') or '').strip()
+        password = request.form.get('password')
+        if not username or not password:
+            flash('Username and password required')
+            db = get_db()
+            log_auth_event(db, None, username, 'register', success=0)
+            db.commit()
+            return redirect(url_for('register'))
+        if not validate_password(password):
+            flash('Password must be at least 8 characters and include a letter and a number')
+            db = get_db()
+            log_auth_event(db, None, username, 'register', success=0)
+            db.commit()
+            return redirect(url_for('register'))
+        db = get_db()
+        try:
+            db.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+                       (username, email if email else None, generate_password_hash(password)))
+            db.commit()
+            user_id = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+            log_auth_event(db, user_id['id'] if user_id else None, username, 'register', success=1)
+            db.commit()
+        except sqlite3.IntegrityError:
+            flash('Username or email already taken')
+            log_auth_event(db, None, username, 'register', success=0)
+            db.commit()
+            return redirect(url_for('register'))
+        flash('Account created — please log in')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = (request.form.get('username') or '').strip()
+        password = request.form.get('password')
+        db = get_db()
+        row = db.execute(
+            'SELECT * FROM users WHERE username = ?',
+            (username,)
+        ).fetchone()
+        if row and check_password_hash(row['password_hash'], password):
+            session.clear()
+            session.permanent = True
+            session['user_id'] = row['id']
+            session['username'] = row['username']
+            session['is_admin'] = is_admin_user(row['id'], db)
+            log_auth_event(db, row['id'], row['username'], 'login', success=1)
+            db.commit()
+            flash('Logged in')
+            return redirect(url_for('dashboard'))
+        flash('Invalid credentials')
+        log_auth_event(db, row['id'] if row else None, username, 'login', success=0)
+        db.commit()
+        return redirect(url_for('login'))
+    return render_template('login.html')
+
+
+@app.route('/login/otp/request', methods=['POST'])
+def login_otp_request():
+    email = (request.form.get('email') or '').strip()
+    if not email:
+        flash('Email is required for OTP login')
+        return redirect(url_for('login'))
+    db = get_db()
+    user = db.execute('SELECT id, username FROM users WHERE email = ?', (email,)).fetchone()
+    if not user:
+        flash('No account found for that email')
+        log_auth_event(db, None, email, 'otp_request', success=0)
+        db.commit()
+        return redirect(url_for('login'))
+    if is_rate_limited(f'otp:{email}', limit=3, window_seconds=600):
+        flash('Too many OTP requests. Try again later.')
+        return redirect(url_for('login'))
+    code = f"{secrets.randbelow(1000000):06d}"
+    expires_at = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+    db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
+    db.execute(
+        'INSERT INTO login_otp (email, code_hash, expires_at) VALUES (?, ?, ?)',
+        (email, generate_password_hash(code), expires_at)
+    )
+    db.commit()
+    ok, err = send_login_otp_email(email, code)
+    if not ok:
+        flash(f'OTP email failed: {err}')
+        return redirect(url_for('login'))
+    flash('OTP sent to your email')
+    log_auth_event(db, user['id'], user['username'], 'otp_request', success=1)
+    db.commit()
+    return redirect(url_for('login'))
+
+
+@app.route('/login/otp/verify', methods=['POST'])
+def login_otp_verify():
+    email = (request.form.get('email') or '').strip()
+    code = (request.form.get('otp') or '').strip()
+    if not email or not code:
+        flash('Email and OTP are required')
+        return redirect(url_for('login'))
+    db = get_db()
+    otp_row = db.execute('SELECT * FROM login_otp WHERE email = ?', (email,)).fetchone()
+    if not otp_row:
+        flash('OTP not found. Please request a new code.')
+        return redirect(url_for('login'))
+    expires_at = parse_date(otp_row['expires_at'])
+    if not expires_at or datetime.utcnow() > expires_at:
+        db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
+        db.commit()
+        flash('OTP expired. Please request a new code.')
+        return redirect(url_for('login'))
+    if not check_password_hash(otp_row['code_hash'], code):
+        flash('Invalid OTP')
+        log_auth_event(db, None, email, 'otp_verify', success=0)
+        db.commit()
+        return redirect(url_for('login'))
+    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+    if not user:
+        flash('Account not found for this email')
+        return redirect(url_for('login'))
+    db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
+    db.commit()
+    session.clear()
+    session.permanent = True
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    session['is_admin'] = is_admin_user(user['id'], db)
+    log_auth_event(db, user['id'], user['username'], 'otp_login', success=1)
+    db.commit()
+    flash('Logged in with OTP')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/logout')
+def logout():
+    db = get_db()
+    if session.get('username'):
+        log_auth_event(db, session.get('user_id'), session.get('username'), 'logout', success=1)
+        db.commit()
+    session.clear()
+    flash('Logged out')
+    return redirect(url_for('index'))
+
+@app.route('/preferences', methods=['GET', 'POST'])
+@login_required
+def preferences():
+    db = get_db()
+    user_id = session.get('user_id')
+    if request.method == 'POST':
+        regions = request.form.get('regions', '').strip()
+        types = request.form.get('types', '').strip()
+        keywords = request.form.get('keywords', '').strip()
+        channels = request.form.get('channels', '').strip()
+        db.execute('''
+            INSERT INTO user_preferences (user_id, regions, types, keywords, alert_channels, updated_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET
+                regions=excluded.regions,
+                types=excluded.types,
+                keywords=excluded.keywords,
+                alert_channels=excluded.alert_channels,
+                updated_at=CURRENT_TIMESTAMP
+        ''', (user_id, regions, types, keywords, channels))
+        db.commit()
+        flash('Preferences saved', 'success')
+        return redirect(url_for('preferences', cleared='1'))
+    if request.args.get('cleared') == '1':
+        return render_template('preferences.html', pref={})
+    pref = db.execute('SELECT * FROM user_preferences WHERE user_id = ?', (user_id,)).fetchone()
+    return render_template('preferences.html', pref=dict(pref) if pref else {})
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    db = get_db()
+    user_id = session.get('user_id')
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        college = request.form.get('college', '').strip()
+        degree = request.form.get('degree', '').strip()
+        graduation_year = request.form.get('graduation_year', '').strip()
+        skills = request.form.get('skills', '').strip()
+        preferred_regions = request.form.get('preferred_regions', '').strip()
+        preferred_roles = request.form.get('preferred_roles', '').strip()
+        db.execute('''
+            INSERT INTO user_profiles (user_id, full_name, college, degree, graduation_year, skills, preferred_regions, preferred_roles, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET
+                full_name=excluded.full_name,
+                college=excluded.college,
+                degree=excluded.degree,
+                graduation_year=excluded.graduation_year,
+                skills=excluded.skills,
+                preferred_regions=excluded.preferred_regions,
+                preferred_roles=excluded.preferred_roles,
+                updated_at=CURRENT_TIMESTAMP
+        ''', (user_id, full_name, college, degree, graduation_year, skills, preferred_regions, preferred_roles))
+        db.commit()
+        flash('Profile saved', 'success')
+        return redirect(url_for('profile', cleared='1'))
+    if request.args.get('cleared') == '1':
+        return render_template('profile.html', profile={})
+    return render_template('profile.html', profile={})
+
+@app.route('/saved')
+@login_required
+def saved():
+    db = get_db()
+    user_id = session.get('user_id')
+    rows = db.execute('''
+        SELECT * FROM saved_opportunities WHERE user_id = ?
+        ORDER BY created_at DESC
+    ''', (user_id,)).fetchall()
+    return render_template('saved.html', saved=[dict(r) for r in rows])
+
+@app.route('/alerts')
+@login_required
+def alerts():
+    db = get_db()
+    user_id = session.get('user_id')
+    rows = db.execute('''
+        SELECT * FROM alert_queue WHERE user_id = ?
+        ORDER BY created_at DESC
+    ''', (user_id,)).fetchall()
+    if not rows:
+        generate_alerts_for_user(db, user_id, limit=20)
+        rows = db.execute('''
+            SELECT * FROM alert_queue WHERE user_id = ?
+            ORDER BY created_at DESC
+        ''', (user_id,)).fetchall()
+    return render_template('alerts.html', alerts=[dict(r) for r in rows])
+
+@app.route('/save-opportunity', methods=['POST'])
+@login_required
+def save_opportunity():
+    db = get_db()
+    user_id = session.get('user_id')
+    source = request.form.get('source', 'demo')
+    source_id_raw = request.form.get('source_id')
+    title = request.form.get('title', '').strip()
+    url = request.form.get('url', '').strip()
+    source_id = (source_id_raw or '').strip() or None
+    if not title:
+        flash('Invalid opportunity', 'error')
+        return redirect(request.referrer or url_for('opportunities'))
+    if source_id:
+        existing = db.execute('''
+            SELECT 1 FROM saved_opportunities
+            WHERE user_id = ? AND source = ? AND source_id = ?
+        ''', (user_id, source, source_id)).fetchone()
+    else:
+        existing = db.execute('''
+            SELECT 1 FROM saved_opportunities
+            WHERE user_id = ? AND source = ? AND (source_id IS NULL OR source_id = '')
+              AND url = ?
+        ''', (user_id, source, url)).fetchone()
+    if not existing:
+        db.execute('''
+            INSERT INTO saved_opportunities (user_id, source, source_id, title, url)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (user_id, source, source_id, title, url))
+        db.commit()
+        flash('Saved', 'success')
+    else:
+        flash('Already saved', 'info')
+    return redirect(request.referrer or url_for('opportunities'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    db = get_db()
+    user_id = session.get('user_id')
+    is_admin = is_admin_user(user_id, db)
+    
+    # Get user-specific data
+    rows = db.execute('SELECT * FROM awareness_data WHERE user_id = ? ORDER BY created_at DESC', (user_id,)).fetchall()
+    total = len(rows)
+    avg_delay = None
+    late_count = 0
+    avg_delay_ratio = None
+    recommendations = []
+    
+    if total:
+        delays = [r['delay_days'] for r in rows if r['delay_days'] is not None]
+        if delays:
+            avg_delay = round(sum(delays) / len(delays), 2)
+        late_count = sum(1 for r in rows if r['delay_category'] == 'Late Access')
+        ratios = [r['delay_ratio'] for r in rows if r['delay_ratio'] is not None]
+        if ratios:
+            avg_delay_ratio = round(sum(ratios) / len(ratios), 4)
+        
+        # AI: Get recommendations based on latest opportunity
+        latest_opp = rows[0] if rows else None
+        if latest_opp:
+            recommendations = find_similar_opportunities(latest_opp['opportunity_name'], db)
+            category_recs = get_opp_recommendations_by_category(
+                latest_opp['college_type'], 
+                latest_opp['region'], 
+                db
+            )
+            for rec in category_recs[:3]:
+                if rec['opportunity_name'].lower() != latest_opp['opportunity_name'].lower():
+                    recommendations.append(rec)
+
+    categories = {}
+    for r in rows:
+        cat = r['delay_category'] or 'Unknown'
+        categories[cat] = categories.get(cat, 0) + 1
+
+    # Get online opportunities (for demo recommendations)
+    online_opps = get_live_opportunities(db, user_id=user_id)
+    # Filter by user's opportunities region if available (from their latest submission)
+    user_region = None
+    if rows:
+        user_region = rows[0]['region']
+    
+    if user_region:
+        filtered_online = filter_opportunities(get_live_opportunities(db, user_id=user_id), region=user_region)
+        online_opps = filtered_online if filtered_online else online_opps[:6]
+    else:
+        online_opps = online_opps[:6]
+
+    data = {
+        'total': total,
+        'avg_delay': avg_delay,
+        'late_percent': round((late_count / total) * 100, 2) if total else 0,
+        'avg_delay_ratio': avg_delay_ratio,
+        'categories': categories,
+        'rows': [dict(r) for r in rows],
+        'recommendations': recommendations[:5],
+        'online_opportunities': online_opps,
+        'is_admin': is_admin
+    }
+    return render_template('dashboard.html', data=data)
+
+@app.route('/insights')
+@login_required
+def insights():
+    """Generate and display AI insights about opportunity awareness patterns"""
+    db = get_db()
+    rows = db.execute('SELECT * FROM awareness_data').fetchall()
+    total = len(rows)
+    
+    if not total:
+        return render_template('insights.html', insights=[], insights_data={})
+
+    # Calculate metrics
+    late_count = sum(1 for r in rows if r['delay_category'] == 'Late Access')
+    medium_count = sum(1 for r in rows if r['delay_category'] == 'Medium Delay')
+    early_count = sum(1 for r in rows if r['delay_category'] == 'Early Access')
+    
+    ratios = [r['delay_ratio'] for r in rows if r['delay_ratio'] is not None]
+    avg_ratio = sum(ratios) / len(ratios) if ratios else 0
+    max_ratio = max(ratios) if ratios else 0
+    
+    delays = [r['delay_days'] for r in rows if r['delay_days'] is not None]
+    avg_delay = sum(delays) / len(delays) if delays else 0
+    
+    # Regional analysis
+    regions = {}
+    for r in rows:
+        region = r['region'] if r['region'] else 'Unknown'
+        if region not in regions:
+            regions[region] = {'total': 0, 'late': 0}
+        regions[region]['total'] += 1
+        if r['delay_category'] == 'Late Access':
+            regions[region]['late'] += 1
+    
+    high_risk_regions = []
+    for region, data in regions.items():
+        if data['total'] > 0:
+            late_pct = (data['late'] / data['total']) * 100
+            high_risk_regions.append({'region': region, 'late_pct': late_pct, 'count': data['total']})
+    high_risk_regions = sorted(high_risk_regions, key=lambda x: x['late_pct'], reverse=True)[:3]
+
+    # Generate insights
+    insights_list = []
+    
+    if (late_count / total) > 0.6:
+        insights_list.append(f'🚨 CRITICAL: {(late_count/total)*100:.1f}% of submissions show late awareness. This indicates a major systemic inequality in opportunity reach.')
+    elif (late_count / total) > 0.4:
+        insights_list.append(f'⚠️ WARNING: {(late_count/total)*100:.1f}% of submissions show late awareness. Significant portions of users receive information too late.')
+    else:
+        insights_list.append(f'✅ POSITIVE: Only {(late_count/total)*100:.1f}% of submissions show late awareness. Opportunities are reaching users relatively on time.')
+    
+    if avg_ratio > 0.7:
+        insights_list.append(f'📉 SEVERE LOSS: On average, users lose {avg_ratio*100:.1f}% of the opportunity window before becoming aware. This is critical.')
+    elif avg_ratio > 0.5:
+        insights_list.append(f'📉 MAJOR LOSS: On average, users lose {avg_ratio*100:.1f}% of the opportunity window before becoming aware.')
+    else:
+        insights_list.append(f'📈 ACCEPTABLE: Users retain approximately {(1-avg_ratio)*100:.1f}% of the opportunity window on average.')
+    
+    if early_count > 0:
+        insights_list.append(f'🌟 EXCELLENCE: {early_count} case(s) of early awareness detected - these are examples of optimal opportunity reach!')
+    
+    if high_risk_regions:
+        top_risk = high_risk_regions[0]
+        insights_list.append(f'🗺️ REGIONAL ALERT: {top_risk["region"]} shows {top_risk["late_pct"]:.1f}% late awareness rate ({top_risk["count"]} submissions). Needs targeted intervention.')
+    
+    insights_list.append(f'📊 DATA QUALITY: Analysis based on {total} submissions across {len(regions)} regions.')
+
+    insights_data = {
+        'total': total,
+        'late': late_count,
+        'medium': medium_count,
+        'early': early_count,
+        'avg_delay': f'{avg_delay:.1f}',
+        'avg_ratio': f'{avg_ratio:.2f}',
+        'max_ratio': f'{max_ratio:.2f}',
+        'regions': len(regions),
+        'high_risk_regions': high_risk_regions
+    }
+    
+    return render_template('insights.html', insights=insights_list, insights_data=insights_data)
+
+@app.route('/opportunities')
+@login_required
+def opportunities():
+    """Show all online opportunities with filtering"""
+    db = get_db()
+    # Get filter parameters
+    search_query = request.args.get('search', '')
+    filter_region = request.args.get('region', '')
+    filter_type = request.args.get('type', '')
+    page = int(request.args.get('page', '1') or 1)
+    if page < 1:
+        page = 1
+    
+    # Get opportunities
+    if search_query or filter_region or filter_type:
+        opps = filter_opportunities(
+            get_live_opportunities(db, user_id=session.get('user_id')),
+            query=search_query if search_query else None,
+            region=filter_region if filter_region else None,
+            internship_type=filter_type if filter_type else None
+        )
+    else:
+        opps = get_live_opportunities(db, user_id=session.get('user_id'))
+    total_count = len(opps)
+    start = (page - 1) * OPPS_PAGE_SIZE
+    end = start + OPPS_PAGE_SIZE
+    opps_page = opps[start:end]
+    
+    # Get unique values for filter dropdowns
+    all_opps = get_live_opportunities(db, user_id=session.get('user_id'))
+    regions = sorted(set(
+        region.strip()
+        for opp in all_opps
+        for region in (opp.get('region') or '').split(',')
+        if region.strip()
+    ))
+    opportunity_types = sorted(set(opp.get('type') or '' for opp in all_opps if opp.get('type')))
+    
+    data = {
+        'opportunities': opps_page,
+        'search_query': search_query,
+        'filter_region': filter_region,
+        'filter_type': filter_type,
+        'regions': regions,
+        'opportunity_types': opportunity_types,
+        'total_count': total_count,
+        'total_available': len(all_opps)
+        ,
+        'page': page,
+        'total_pages': (total_count + OPPS_PAGE_SIZE - 1) // OPPS_PAGE_SIZE
+    }
+    
+    return render_template('opportunities.html', data=data)
+    if not insights:
+        insights.append('No strong inequality signals detected yet.')
+
+    return render_template('insights.html', insights=insights)
+
+# ADMIN PANEL - Full Control & Permissions
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    """Admin dashboard with all system data and AI-powered recommendations"""
+    db = get_db()
+    
+    # Get all users
+    all_users = db.execute('SELECT id, username, role, created_at FROM users ORDER BY id').fetchall()
+    
+    # Get all opportunities with stats
+    all_opps = db.execute('''
+        SELECT opportunity_name, college_type, region, 
+               COUNT(*) as submissions,
+               AVG(delay_days) as avg_delay,
+               COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) as late_count
+        FROM awareness_data
+        GROUP BY opportunity_name
+        ORDER BY submissions DESC
+    ''').fetchall()
+    
+    # Get system statistics
+    total_users = len(all_users)
+    total_submissions = db.execute('SELECT COUNT(*) as c FROM awareness_data').fetchone()['c']
+    avg_system_delay = db.execute('SELECT AVG(delay_days) as avg FROM awareness_data').fetchone()['avg']
+    
+    # AI: Get high-risk regions (highest late access percentage)
+    high_risk_regions = db.execute('''
+        SELECT region, 
+               COUNT(*) as total,
+               COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) as late_count,
+               ROUND(COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) * 100.0 / COUNT(*), 2) as late_percent
+        FROM awareness_data
+        GROUP BY region
+        ORDER BY late_percent DESC
+        LIMIT 5
+    ''').fetchall()
+    
+    admin_data = {
+        'users': [dict(u) for u in all_users],
+        'opportunities': [dict(o) for o in all_opps],
+        'total_users': total_users,
+        'total_submissions': total_submissions,
+        'avg_system_delay': round(avg_system_delay, 2) if avg_system_delay else 0,
+        'high_risk_regions': [dict(r) for r in high_risk_regions],
+        'sources': [dict(s) for s in db.execute('SELECT * FROM external_sources ORDER BY id').fetchall()],
+        'pending_opps': [dict(o) for o in db.execute('SELECT * FROM external_opportunities WHERE approved = 0 ORDER BY fetched_at DESC LIMIT 20').fetchall()],
+        'auth_logs': [dict(l) for l in db.execute('SELECT * FROM auth_log ORDER BY created_at DESC LIMIT 200').fetchall()]
+    }
+    
+    return render_template('admin_panel.html', admin_data=admin_data)
+
+@app.route('/admin/user-permissions', methods=['POST'])
+@admin_required
+def admin_user_permissions():
+    """Admin: Manage user permissions and roles"""
+    user_id = request.form.get('user_id')
+    action = request.form.get('action')
+    
+    if not user_id or not action:
+        flash('Invalid request', 'error')
+        return redirect(url_for('admin_panel'))
+    
+    db = get_db()
+    
+    if action == 'make_admin':
+        db.execute('UPDATE users SET role = ? WHERE id = ?', ('admin', user_id))
+        db.execute('INSERT OR IGNORE INTO admins (user_id) VALUES (?)', (user_id,))
+        log_audit(db, session.get('user_id'), 'UPDATE', 'admins', user_id, 'Promoted user to admin')
+        flash('User promoted to Admin', 'success')
+    elif action == 'make_user':
+        db.execute('UPDATE users SET role = ? WHERE id = ?', ('user', user_id))
+        db.execute('DELETE FROM admins WHERE user_id = ?', (user_id,))
+        log_audit(db, session.get('user_id'), 'UPDATE', 'admins', user_id, 'Demoted admin to user')
+        flash('User demoted to regular user', 'success')
+    elif action == 'delete':
+        db.execute('DELETE FROM submissions WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM awareness_data WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM admins WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        log_audit(db, session.get('user_id'), 'DELETE', 'users', user_id, 'Deleted user and related data')
+        flash('User and their data deleted', 'success')
+    
+    db.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/add-user', methods=['POST'])
+@admin_required
+def admin_add_user():
+    """Admin: Add new user with specified role"""
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '').strip()
+    role = request.form.get('role', 'user')
+    
+    # Validate inputs
+    if not username or not password:
+        flash('Username and password are required', 'error')
+        return redirect(url_for('admin_panel'))
+    
+    if not validate_password(password):
+        flash('Password must be at least 8 characters and include a letter and a number', 'error')
+        return redirect(url_for('admin_panel'))
+    
+    if role not in ['user', 'admin']:
+        flash('Invalid role specified', 'error')
+        return redirect(url_for('admin_panel'))
+    
+    db = get_db()
+    try:
+        cursor = db.execute(
+            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+            (username, email if email else None, generate_password_hash(password), role)
+        )
+        new_user_id = cursor.lastrowid
+        if role == 'admin':
+            db.execute('INSERT OR IGNORE INTO admins (user_id) VALUES (?)', (new_user_id,))
+        db.commit()
+        log_audit(db, session.get('user_id'), 'INSERT', 'users', new_user_id, f'Created user {username} with role {role}')
+        flash(f'✓ User "{username}" created successfully with role: {role.upper()}', 'success')
+    except sqlite3.IntegrityError as e:
+        if 'username' in str(e):
+            flash('Username already taken', 'error')
+        elif 'email' in str(e):
+            flash('Email already registered', 'error')
+        else:
+            flash('User creation failed', 'error')
+    
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/add-source', methods=['POST'])
+@admin_required
+def admin_add_source():
+    name = request.form.get('name', '').strip()
+    url = request.form.get('url', '').strip()
+    kind = request.form.get('kind', '').strip()
+    if not name or not url or kind not in ['rss', 'json', 'html']:
+        flash('Source name, url, and kind are required', 'error')
+        return redirect(url_for('admin_panel'))
+    db = get_db()
+    db.execute('INSERT INTO external_sources (name, url, kind) VALUES (?, ?, ?)', (name, url, kind))
+    db.commit()
+    log_audit(db, session.get('user_id'), 'INSERT', 'external_sources', None, f'Added source {name}')
+    flash('Source added', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/refresh-sources', methods=['POST'])
+@admin_required
+def admin_refresh_sources():
+    db = get_db()
+    added = refresh_external_opportunities(db)
+    log_audit(db, session.get('user_id'), 'UPDATE', 'external_sources', None, f'Refreshed sources, added {added} items')
+    flash(f'Refreshed sources. Added {added} items.', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/approve-opportunity', methods=['POST'])
+@admin_required
+def admin_approve_opportunity():
+    opp_id = request.form.get('opp_id')
+    if not opp_id:
+        flash('Invalid request', 'error')
+        return redirect(url_for('admin_panel'))
+    db = get_db()
+    db.execute('UPDATE external_opportunities SET approved = 1 WHERE id = ?', (opp_id,))
+    opp = db.execute('SELECT * FROM external_opportunities WHERE id = ?', (opp_id,)).fetchone()
+    if opp:
+        preferences = db.execute('SELECT * FROM user_preferences').fetchall()
+        item = dict(opp)
+        for pref in preferences:
+            score = compute_relevance(item, dict(pref))
+            if score >= 2:
+                channels = (pref['alert_channels'] or 'email').split(',')
+                for ch in [c.strip() for c in channels if c.strip()]:
+                    db.execute('''
+                        INSERT OR IGNORE INTO alert_queue
+                        (user_id, channel, source, source_id, title, url)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (pref['user_id'], ch, 'external', item['id'], item['title'], item['url']))
+    db.commit()
+    log_audit(db, session.get('user_id'), 'UPDATE', 'external_opportunities', opp_id, 'Approved opportunity')
+    flash('Opportunity approved', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/send-alerts', methods=['POST'])
+@admin_required
+def admin_send_alerts():
+    db = get_db()
+    sent = send_pending_alerts(db)
+    log_audit(db, session.get('user_id'), 'UPDATE', 'alert_queue', None, f'Sent {sent} alerts')
+    flash(f'Sent {sent} alerts', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/backup-db', methods=['POST'])
+@admin_required
+def admin_backup_db():
+    try:
+        dest = backup_database()
+        log_audit(get_db(), session.get('user_id'), 'BACKUP', 'data.db', None, str(dest))
+        flash(f'Backup created: {dest.name}', 'success')
+    except Exception:
+        flash('Backup failed', 'error')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/smtp-test', methods=['POST'])
+@admin_required
+def admin_smtp_test():
+    db = get_db()
+    user_id = session.get('user_id')
+    row = db.execute('SELECT email FROM users WHERE id = ?', (user_id,)).fetchone()
+    email = row['email'] if row else None
+    if not email:
+        flash('No email on your account. Add one to test SMTP.', 'error')
+        return redirect(url_for('admin_panel'))
+    ok, err = send_test_email(email)
+    if ok:
+        flash(f'SMTP test sent to {email}', 'success')
+    else:
+        flash(f'SMTP test failed: {err}', 'error')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/ai-recommendations')
+@admin_required
+def admin_ai_recommendations():
+    """Admin: View AI-powered opportunity recommendations"""
+    db = get_db()
+    
+    # Get all opportunities
+    all_opps = db.execute('SELECT DISTINCT opportunity_name FROM awareness_data ORDER BY opportunity_name').fetchall()
+    
+    recommendations_map = {}
+    for opp in all_opps:
+        opp_name = opp['opportunity_name']
+        # Get similar opportunities
+        similar = find_similar_opportunities(opp_name, db)
+        if similar:
+            recommendations_map[opp_name] = similar
+    
+    return render_template('admin_ai_recommendations.html', recommendations=recommendations_map)
+
+if __name__ == '__main__':
+    init_db()
+    if os.environ.get('ENABLE_SCHEDULER', '0') == '1' and os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        def _scheduler_worker():
+            while True:
+                try:
+                    db = sqlite3.connect(DB_PATH)
+                    db.row_factory = sqlite3.Row
+                    refresh_external_opportunities(db)
+                    db.close()
+                except Exception:
+                    pass
+                time.sleep(EXTERNAL_REFRESH_MINUTES * 60)
+        t = threading.Thread(target=_scheduler_worker, daemon=True)
+        t.start()
+    app.run(debug=True)

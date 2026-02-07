@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Saved · Awareness Delay{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header glass-surface">
+    <h2>⭐ Saved Opportunities</h2>
+    <p class="subtitle">Your bookmarked opportunities in one place.</p>
+  </div>
+
+  {% if saved %}
+  <div class="data-section fade-in glass-surface">
+    <h3 class="section-title">Saved List</h3>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Source</th>
+            <th>Link</th>
+            <th>Saved At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in saved %}
+          <tr class="table-row-animate">
+            <td><strong>{{ s.title }}</strong></td>
+            <td>{{ s.source }}</td>
+            <td>
+              {% if s.url %}
+              <a href="{{ s.url }}" target="_blank" rel="noopener" style="color:#00ccff;">Open</a>
+              {% else %}
+              —
+              {% endif %}
+            </td>
+            <td>{{ s.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state fade-in">
+    <div class="empty-icon">⭐</div>
+    <h3>No Saved Opportunities</h3>
+    <p>Browse opportunities and save your favorites.</p>
+    <a href="/opportunities" class="btn">Browse Opportunities</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,689 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel · Awareness Delay{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+  <div class="admin-hero">
+    <div>
+      <h2>Admin Control Panel</h2>
+      <p class="subtitle">Manage users, sources, and system insights</p>
+    </div>
+    <div class="admin-hero-actions">
+      <form method="POST" action="/admin/refresh-sources">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-outline">Refresh Sources</button>
+      </form>
+      <form method="POST" action="/admin/send-alerts">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-primary">Send Alerts</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- System Overview -->
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h4>Total Users</h4>
+        <p class="stat-value">{{ admin_data.total_users|default(0) }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <h4>Total Submissions</h4>
+        <p class="stat-value">{{ admin_data.total_submissions|default(0) }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏱️</div>
+      <div class="stat-content">
+        <h4>Avg System Delay</h4>
+        <p class="stat-value">{{ admin_data.avg_system_delay|default(0) }} days</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Alert: High Risk Regions -->
+  {% if admin_data.high_risk_regions %}
+  <div class="admin-section">
+    <h3>High-Risk Regions</h3>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Region</th>
+          <th>Total Submissions</th>
+          <th>Late Access Count</th>
+          <th>Late Access %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for region in admin_data.high_risk_regions %}
+        <tr>
+          <td><strong>{{ region.region }}</strong></td>
+          <td>{{ region.total }}</td>
+          <td>{{ region.late_count }}</td>
+          <td><span class="risk-badge" style="background: rgba(239,68,68,0.3); color: #fca5a5;">{{ region.late_percent }}%</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- User Management Section -->
+  <div class="admin-section">
+    <h3>User Management</h3>
+    
+    <!-- Create New User Form -->
+    <div class="add-user-form-container">
+      <h4>Add New User</h4>
+      <form method="POST" action="/admin/add-user" class="add-user-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-row">
+          <div class="form-group-small">
+            <label for="new_username">Username <span style="color: #ff6b6b;">*</span></label>
+            <input 
+              type="text" 
+              id="new_username" 
+              name="username" 
+              placeholder="Enter username"
+              required
+              autocomplete="off"
+            >
+          </div>
+          <div class="form-group-small">
+            <label for="new_email">Email (optional)</label>
+            <input 
+              type="email" 
+              id="new_email" 
+              name="email" 
+              placeholder="user@example.com"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group-small">
+            <label for="new_password">Password <span style="color: #ff6b6b;">*</span></label>
+            <input 
+              type="password" 
+              id="new_password" 
+              name="password" 
+              placeholder="Min 6 characters"
+              required
+              minlength="6"
+            >
+          </div>
+          <div class="form-group-small">
+            <label for="new_role">Role</label>
+            <select id="new_role" name="role" class="form-select-small">
+              <option value="user">👤 User</option>
+              <option value="admin">🔐 Admin</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-create-user">Create User</button>
+      </form>
+    </div>
+
+    <!-- User List Table -->
+    <h4 style="margin-top: 30px;">All Users</h4>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in admin_data.users %}
+        <tr>
+          <td><strong>{{ user.username }}</strong></td>
+          <td>
+            <span class="role-badge" style="background: {% if user.role == 'admin' %}rgba(0,102,204,0.3); color: #7dd3fc;{% else %}rgba(107,114,128,0.3); color: #d1d5db;{% endif %}">
+              {{ user.role | upper }}
+            </span>
+          </td>
+          <td>{{ user.created_at[:10] }}</td>
+          <td>
+            <form method="POST" action="/admin/user-permissions" style="display: flex; gap: 8px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              {% if user.role != 'admin' %}
+              <button type="submit" name="action" value="make_admin" class="btn-small btn-grant">✓ Grant Admin</button>
+              {% else %}
+              <button type="submit" name="action" value="make_user" class="btn-small btn-revoke">✗ Revoke Admin</button>
+              {% endif %}
+              <button type="submit" name="action" value="delete" class="btn-small btn-delete" onclick="return confirm('Delete user and all their data?');">🗑️ Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Opportunity Analysis -->
+  <div class="admin-section">
+    <h3>Opportunity Analysis</h3>
+    <div class="admin-actions">
+      <a href="/admin/ai-recommendations" class="btn-outline">AI Recommendations</a>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Opportunity</th>
+          <th>College Type</th>
+          <th>Region</th>
+          <th>Submissions</th>
+          <th>Avg Delay</th>
+          <th>Late Access %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for opp in admin_data.opportunities[:10] %}
+        <tr>
+          <td><strong>{{ opp.opportunity_name }}</strong></td>
+          <td>{{ opp.college_type }}</td>
+          <td>{{ opp.region }}</td>
+          <td>{{ opp.submissions }}</td>
+          <td>{{ opp.avg_delay | round(2) if opp.avg_delay else 'N/A' }} days</td>
+          <td>
+            {% set late_percent = (opp.late_count / opp.submissions * 100) if opp.submissions > 0 else 0 %}
+            <span class="risk-badge" style="background: rgba({% if late_percent > 70 %}239,68,68{% elif late_percent > 40 %}245,158,11{% else %}16,185,129{% endif %},0.3); color: {% if late_percent > 70 %}#fca5a5{% elif late_percent > 40 %}#fcd34d{% else %}#a7f3d0{% endif %};">
+              {{ late_percent | round(1) }}%
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- External Sources -->
+  <div class="admin-section">
+    <h3>External Opportunity Sources</h3>
+    <div class="admin-actions" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <form method="POST" action="/admin/refresh-sources">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-primary">🔄 Refresh Sources</button>
+      </form>
+      <form method="POST" action="/admin/send-alerts">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-primary">📧 Send Email Alerts</button>
+      </form>
+      <form method="POST" action="/admin/backup-db">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-primary">💾 Backup DB</button>
+      </form>
+      <form method="POST" action="/admin/smtp-test">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn-secondary">🧪 SMTP Test</button>
+      </form>
+    </div>
+
+    <div class="add-user-form-container" style="margin-top:16px;">
+      <h4>➕ Add Source</h4>
+      <form method="POST" action="/admin/add-source" class="add-user-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-row">
+          <div class="form-group-small">
+            <label for="source_name">Source Name</label>
+            <input type="text" id="source_name" name="name" placeholder="Example: Scholarships Feed" required>
+          </div>
+          <div class="form-group-small">
+            <label for="source_kind">Type</label>
+            <select id="source_kind" name="kind" class="form-select-small" required>
+              <option value="rss">RSS</option>
+              <option value="json">JSON</option>
+              <option value="html">HTML</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group-small">
+            <label for="source_url">Source URL</label>
+            <input type="url" id="source_url" name="url" placeholder="https://example.com/feed" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-create-user">➕ Add Source</button>
+      </form>
+    </div>
+
+    <h4 style="margin-top: 20px;">📌 Active Sources</h4>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>URL</th>
+          <th>Last Fetched</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in admin_data.sources %}
+        <tr>
+          <td><strong>{{ s.name }}</strong></td>
+          <td>{{ s.kind | upper }}</td>
+          <td style="max-width:420px; word-break:break-all;">{{ s.url }}</td>
+          <td>{{ s.last_fetched or '—' }}</td>
+        </tr>
+        {% endfor %}
+        {% if not admin_data.sources %}
+        <tr>
+          <td colspan="4" style="color: rgba(255,255,255,0.6);">No sources added yet.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pending Opportunities -->
+  <div class="admin-section">
+    <h3>🧾 Pending Opportunities (Approval Required)</h3>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Source</th>
+          <th>Fetched</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in admin_data.pending_opps %}
+        <tr>
+          <td><strong>{{ o.title }}</strong></td>
+          <td>{{ o.company or '—' }}</td>
+          <td>{{ o.source }}</td>
+          <td>{{ o.fetched_at }}</td>
+          <td>
+            <form method="POST" action="/admin/approve-opportunity">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="opp_id" value="{{ o.id }}">
+              <button type="submit" class="btn-small btn-grant">Approve</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not admin_data.pending_opps %}
+        <tr>
+          <td colspan="5" style="color: rgba(255,255,255,0.6);">No pending items.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Auth Logs -->
+  <div class="admin-section">
+    <h3>🔐 Authentication Logs</h3>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Username</th>
+          <th>Event</th>
+          <th>Success</th>
+          <th>IP</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in admin_data.auth_logs %}
+        <tr>
+          <td>{{ l.created_at }}</td>
+          <td>{{ l.username or '—' }}</td>
+          <td>{{ l.event }}</td>
+          <td>
+            <span class="role-badge" style="background: {% if l.success %}rgba(16,185,129,0.3); color:#a7f3d0;{% else %}rgba(239,68,68,0.3); color:#fca5a5;{% endif %}">
+              {{ 'SUCCESS' if l.success else 'FAILED' }}
+            </span>
+          </td>
+          <td>{{ l.ip_address or '—' }}</td>
+          <td style="max-width:380px; word-break:break-all;">{{ l.user_agent or '—' }}</td>
+        </tr>
+        {% endfor %}
+        {% if not admin_data.auth_logs %}
+        <tr>
+          <td colspan="6" style="color: rgba(255,255,255,0.6);">No auth logs yet.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Admin Footer -->
+  <div class="admin-footer">
+    <p style="color: rgba(255,255,255,0.6); font-size: 12px;">
+      🔐 Admin Panel • You have full system access • All changes are logged in the audit trail
+    </p>
+  </div>
+</div>
+
+<style>
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  color: #fff;
+}
+
+.admin-container h2 {
+  color: #00ccff;
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 40px;
+  font-size: 14px;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: slideUp 0.6s ease-out;
+}
+
+.stat-icon {
+  font-size: 40px;
+}
+
+.stat-content h4 {
+  margin: 0 0 8px;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 28px;
+  color: #00ccff;
+  font-weight: bold;
+}
+
+.admin-section {
+  margin-bottom: 40px;
+  animation: slideUp 0.6s ease-out;
+  animation-delay: 0.1s;
+}
+
+.admin-section h3 {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table thead {
+  background: rgba(0,102,204,0.25);
+  backdrop-filter: blur(10px);
+}
+
+.admin-table th {
+  padding: 16px;
+  color: rgba(255,255,255,0.9);
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  padding: 16px;
+  color: rgba(255,255,255,0.8);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 14px;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.role-badge, .risk-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-grant {
+  background: rgba(16,185,129,0.3);
+  color: #a7f3d0;
+}
+
+.btn-grant:hover {
+  background: rgba(16,185,129,0.5);
+}
+
+.btn-revoke {
+  background: rgba(245,158,11,0.3);
+  color: #fcd34d;
+}
+
+.btn-revoke:hover {
+  background: rgba(245,158,11,0.5);
+}
+
+.btn-delete {
+  background: rgba(239,68,68,0.3);
+  color: #fca5a5;
+}
+
+.btn-delete:hover {
+  background: rgba(239,68,68,0.5);
+}
+
+.admin-actions {
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0066cc, #0052a3);
+  color: white !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 25px rgba(0,102,204,0.6);
+  transform: translateY(-2px);
+}
+
+.admin-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Add User Form Styles */
+.add-user-form-container {
+  background: linear-gradient(135deg, rgba(0,102,204,0.1), rgba(0,153,255,0.1));
+  border: 1.5px solid rgba(0,204,255,0.3);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.add-user-form-container h4 {
+  color: #fff;
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group-small {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group-small label {
+  color: rgba(255,255,255,0.9);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group-small input,
+.form-select-small {
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.form-group-small input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.form-group-small input:focus,
+.form-select-small:focus {
+  outline: none;
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(0,204,255,0.6);
+  box-shadow: 0 0 12px rgba(0,204,255,0.3);
+}
+
+.form-select-small {
+  cursor: pointer;
+}
+
+.form-select-small option {
+  background: #2d3142;
+  color: #fff;
+}
+
+.btn-create-user {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #0066cc, #0052a3);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,102,204,0.4);
+  align-self: flex-start;
+}
+
+.btn-create-user:hover {
+  box-shadow: 0 6px 25px rgba(0,102,204,0.6);
+  transform: translateY(-2px);
+}
+
+.btn-create-user:active {
+  transform: translateY(0);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-table {
+    font-size: 12px;
+  }
+  
+  .admin-table th, .admin-table td {
+    padding: 12px;
+  }
+  
+  .btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .add-user-form-container {
+    padding: 16px;
+  }
+
+  .btn-create-user {
+    width: 100%;
+    align-self: auto;
+  }
+}
+</style>
+{% endblock %}

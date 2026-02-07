@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Submit Data · Awareness Delay{% endblock %}
+{% block content %}
+<div class="submit-container">
+  <div class="submit-card">
+    <div class="submit-header">
+      <h2>Submit Awareness Data</h2>
+      <p class="subtitle">Help us measure opportunity inequality in real-time</p>
+    </div>
+
+    <form method="post" class="submit-form" id="awarenessForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-section">
+        <h3 class="section-title">🎯 Opportunity Details</h3>
+        
+        <div class="form-group">
+          <label for="opportunity_name">
+            <span class="label-text">✨ Opportunity Name</span>
+            <span class="required">*</span>
+          </label>
+          <input 
+            id="opportunity_name" 
+            name="opportunity_name" 
+            type="text"
+            placeholder="e.g., Google Summer Internship 2026"
+            required
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="announcement_date">
+              <span class="label-text">📢 Announcement Date</span>
+              <span class="required">*</span>
+            </label>
+            <input 
+              id="announcement_date" 
+              name="announcement_date" 
+              type="date"
+              required
+            >
+            <small class="hint">When was it announced publicly?</small>
+          </div>
+
+          <div class="form-group">
+            <label for="awareness_date">
+              <span class="label-text">👀 Your Awareness Date</span>
+              <span class="required">*</span>
+            </label>
+            <input 
+              id="awareness_date" 
+              name="awareness_date" 
+              type="date"
+              required
+            >
+            <small class="hint">When did you first hear about it?</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">⏰ Application Window</h3>
+
+        <div class="form-group">
+          <label for="deadline">
+            <span class="label-text">📅 Application Deadline</span>
+            <span class="optional">(optional)</span>
+          </label>
+          <input 
+            id="deadline" 
+            name="deadline" 
+            type="date"
+          >
+          <small class="hint">When does/did the application close?</small>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">🌍 Context</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="college_type">
+              <span class="label-text">🏫 College Type</span>
+            </label>
+            <select id="college_type" name="college_type" class="form-select">
+              <option value="">-- Select --</option>
+              <option value="Public">Public</option>
+              <option value="Private">Private</option>
+              <option value="Government">Government</option>
+              <option value="Deemed">Deemed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="region">
+              <span class="label-text">📍 Region/State</span>
+            </label>
+            <input 
+              id="region" 
+              name="region" 
+              type="text"
+              placeholder="e.g., Mumbai, Delhi, Bangalore"
+            >
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span class="btn-text">✅ Submit & Contribute to Data</span>
+        <span class="btn-icon">→</span>
+      </button>
+    </form>
+
+    <div class="form-footer">
+      <p class="note">
+        <strong>Your data helps us understand inequality patterns.</strong> 
+        All submissions are aggregated to protect privacy.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('awarenessForm').addEventListener('submit', function(e) {
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+});
+
+// Auto-focus first input
+document.getElementById('opportunity_name').focus();
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Profile · Awareness Delay{% endblock %}
+{% block content %}
+<div class="submit-container">
+  <div class="submit-card glass-surface">
+    <div class="submit-header">
+      <h2>👤 Profile</h2>
+      <p class="subtitle">Tell us about your background to improve relevance.</p>
+    </div>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-success" id="profileToast">
+          {% for m in messages %}
+            <p>{{ m }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <form method="POST" class="submit-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="form-section">
+        <h3 class="section-title">Personal</h3>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="full_name" value="{{ profile.full_name if profile }}">
+        </div>
+        <div class="form-group">
+          <label>College</label>
+          <input type="text" name="college" value="{{ profile.college if profile }}">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Degree</label>
+            <input type="text" name="degree" value="{{ profile.degree if profile }}">
+          </div>
+          <div class="form-group">
+            <label>Graduation Year</label>
+            <input type="text" name="graduation_year" value="{{ profile.graduation_year if profile }}">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3 class="section-title">Skills & Preferences</h3>
+        <div class="form-group">
+          <label>Skills (comma separated)</label>
+          <input type="text" name="skills" value="{{ profile.skills if profile }}">
+        </div>
+        <div class="form-group">
+          <label>Preferred Regions</label>
+          <input type="text" name="preferred_regions" value="{{ profile.preferred_regions if profile }}">
+        </div>
+        <div class="form-group">
+          <label>Preferred Roles</label>
+          <input type="text" name="preferred_roles" value="{{ profile.preferred_roles if profile }}">
+        </div>
+      </div>
+      <button type="submit" class="submit-btn"><span class="btn-text">Save Profile</span></button>
+    </form>
+  </div>
+</div>
+<script>
+  const toast = document.getElementById('profileToast');
+  if (toast) {
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+</script>
+{% endblock %}
