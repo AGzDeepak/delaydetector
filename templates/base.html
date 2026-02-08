@@ -77,6 +77,47 @@
         update();
         setInterval(update, 60000);
       })();
+
+      (function () {
+        const header = document.querySelector('.site-header');
+        if (!header || !window.matchMedia) return;
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+        let lastY = window.scrollY || 0;
+        let ticking = false;
+
+        const syncHeaderVisibility = () => {
+          const y = window.scrollY || 0;
+          if (!mobileQuery.matches) {
+            header.classList.remove('mobile-nav-hidden');
+            lastY = y;
+            ticking = false;
+            return;
+          }
+          if (y <= 8) {
+            header.classList.remove('mobile-nav-hidden');
+          } else if (y > lastY + 4) {
+            header.classList.add('mobile-nav-hidden');
+          } else if (y < lastY - 4) {
+            header.classList.remove('mobile-nav-hidden');
+          }
+          lastY = y;
+          ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            window.requestAnimationFrame(syncHeaderVisibility);
+            ticking = true;
+          }
+        }, { passive: true });
+
+        if (mobileQuery.addEventListener) {
+          mobileQuery.addEventListener('change', () => {
+            header.classList.remove('mobile-nav-hidden');
+            lastY = window.scrollY || 0;
+          });
+        }
+      })();
     </script>
   </body>
 </html>
