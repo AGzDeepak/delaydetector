@@ -47,6 +47,8 @@ EXTERNAL_REQUEST_TIMEOUT = int(os.environ.get('EXTERNAL_REQUEST_TIMEOUT', '15'))
 STATIC_CACHE_DEFAULT = int(os.environ.get('STATIC_CACHE_DEFAULT', '86400'))
 STATIC_CACHE_SHORT = int(os.environ.get('STATIC_CACHE_SHORT', '604800'))
 STATIC_CACHE_LONG = int(os.environ.get('STATIC_CACHE_LONG', '2592000'))
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', '').strip().rstrip('/')
+GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION', '').strip()
 
 DEFAULT_EXTERNAL_SOURCES = [
     {
@@ -233,6 +235,19 @@ def get_csrf_token():
 @app.context_processor
 def inject_csrf_token():
     return {'csrf_token': get_csrf_token()}
+
+def _public_base_url():
+    if SITE_BASE_URL:
+        return SITE_BASE_URL
+    return request.url_root.rstrip('/')
+
+@app.context_processor
+def inject_seo_defaults():
+    return {
+        'canonical_url': request.base_url,
+        'site_base_url': _public_base_url(),
+        'google_site_verification': GOOGLE_SITE_VERIFICATION
+    }
 
 def verify_csrf():
     token = session.get('csrf_token')
@@ -1434,6 +1449,45 @@ def index():
 @app.route('/healthz')
 def healthz():
     return {'status': 'ok'}, 200
+
+@app.route('/robots.txt')
+def robots_txt():
+    site_base = _public_base_url()
+    content = '\n'.join([
+        'User-agent: *',
+        'Allow: /',
+        f'Sitemap: {site_base}/sitemap.xml'
+    ]) + '\n'
+    return app.response_class(content, mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    site_base = _public_base_url()
+    pages = [
+        ('/', '1.0', 'daily'),
+        ('/opportunities', '0.9', 'daily'),
+        ('/submit', '0.8', 'weekly'),
+        ('/dashboard', '0.8', 'daily'),
+        ('/insights', '0.8', 'weekly'),
+        ('/saved', '0.7', 'weekly'),
+        ('/alerts', '0.7', 'weekly'),
+        ('/preferences', '0.6', 'weekly'),
+        ('/profile', '0.6', 'weekly')
+    ]
+    today = datetime.utcnow().date().isoformat()
+    entries = []
+    for path, priority, changefreq in pages:
+        entries.append(
+            f'<url><loc>{site_base}{path}</loc><lastmod>{today}</lastmod>'
+            f'<changefreq>{changefreq}</changefreq><priority>{priority}</priority></url>'
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + ''.join(entries) +
+        '</urlset>'
+    )
+    return app.response_class(xml, mimetype='application/xml')
 
 
 @app.route('/submit', methods=['GET', 'POST'])

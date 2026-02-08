@@ -3,6 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="{% block meta_description %}Track opportunity awareness delays and improve equal access with data-driven insights.{% endblock %}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ self.title()|striptags }}">
+    <meta property="og:description" content="{% block og_description %}Track opportunity awareness delays and improve equal access with data-driven insights.{% endblock %}">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:site_name" content="Awareness Delay">
+    {% if google_site_verification %}
+    <meta name="google-site-verification" content="{{ google_site_verification }}">
+    {% endif %}
     <title>{% block title %}Awareness Delay{% endblock %}</title>
     <link rel="stylesheet" href="/static/style.css">
   </head>
