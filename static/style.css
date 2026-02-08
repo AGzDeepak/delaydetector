@@ -502,6 +502,14 @@ a{color:inherit}
   .site-header.mobile-menu-open .top-actions{
     width:100%;
     justify-content:flex-start;
+    gap:6px;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .site-header.mobile-menu-open .top-actions::-webkit-scrollbar{
+    display:none;
   }
   .site-header.mobile-menu-open .top-datetime{
     align-self:flex-start;
@@ -524,23 +532,30 @@ a{color:inherit}
     min-width:max-content;
     padding:8px 12px;
   }
-  main{padding:16px 12px 44px}
-  .page-container{gap:18px}
+  .icon-link{padding:7px 10px;font-size:13px}
+  .user-pill{padding:7px 10px;font-size:13px}
+  .top-datetime{font-size:11px;padding:5px 9px}
+  main{padding:14px 10px 34px}
+  .page-container{gap:14px}
   .site-search input{font-size:13px;padding:8px}
   .site-search button{padding:8px 12px;flex-shrink:0}
-  .opportunities-container,.insights-container{padding:0}
-  .dashboard-container{padding:0}
+  .opportunities-container,.insights-container{padding:0;margin-top:14px;margin-bottom:24px}
+  .dashboard-container{padding:0;margin-top:14px}
   .home-hero{padding:22px}
   .home-hero-content h1{font-size:29px}
   .home-info,.home-steps,.home-benefits{padding:20px 16px;margin:18px auto}
   .team-section{padding:20px 16px}
   .submit-container{padding:16px 0;margin-top:0}
   .submit-card{padding:20px 16px;border-radius:16px}
-  .dashboard-header,.insights-header,.opportunities-header{padding:20px 16px;margin:18px 0}
+  .dashboard-header,.insights-header,.opportunities-header{padding:16px 14px;margin:12px 0}
   .summary-header{flex-direction:column;align-items:flex-start;gap:6px}
-  .data-section,.summary-panel,.risk-section,.filter-card{padding:16px}
-  .cards-grid{grid-template-columns:1fr}
-  .exam-card{padding:14px}
+  .data-section,.summary-panel,.risk-section,.filter-card{padding:14px}
+  .cards-grid{grid-template-columns:1fr;gap:10px}
+  .exam-card{padding:12px;gap:7px;border-radius:12px}
+  .exam-card h3{font-size:15px;line-height:1.3}
+  .card-desc{font-size:12px;line-height:1.45}
+  .card-meta{font-size:11px;gap:3px}
+  .card-link{padding:7px 10px;font-size:11px;border-radius:10px}
   .region-table{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .region-row{min-width:620px}
   .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -552,6 +567,16 @@ a{color:inherit}
 }
 
 @media (max-width:560px){
+  main{padding:12px 8px 28px}
+  .page-container{gap:12px}
+  .topbar{padding:8px 10px}
+  .site-header.mobile-menu-open .site-nav{padding:0 10px 10px}
+  .site-header.mobile-menu-open .nav-pill{padding:7px 10px;font-size:13px;min-height:36px}
+  .cards-grid{gap:8px}
+  .exam-card{padding:11px}
+  .exam-card h3{font-size:14px}
+  .card-desc{font-size:12px}
+  .card-link{padding:6px 9px}
   .metrics-dashboard{grid-template-columns:1fr}
   .home-hero-metrics{grid-template-columns:1fr}
   .home-steps-grid,.home-benefits-grid,.home-opps-grid,.team-grid{grid-template-columns:1fr}
