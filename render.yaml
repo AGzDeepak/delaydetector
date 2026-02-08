@@ -2,13 +2,19 @@ services:
   - type: web
     name: awareness-delay
     env: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     healthCheckPath: /healthz
     autoDeploy: true
+    disk:
+      name: awareness-delay-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: FLASK_DEBUG
         value: "0"
+      - key: DB_PATH
+        value: /var/data/data.db
