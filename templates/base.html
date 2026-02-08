@@ -4,18 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{% block title %}Awareness Delay{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-  <body>
+  <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
       <div class="topbar">
         <a class="brand" href="/" title="Awareness Delay">
           <span class="brand-mark">A</span>
-          <span class="brand-text">Awareness Market</span>
+          <span class="brand-text">Get Update</span>
         </a>
         <form class="site-search" action="/opportunities" method="GET" role="search">
           <input type="text" name="search" placeholder="Search opportunities, companies, roles">
@@ -25,12 +21,7 @@
           <div class="top-actions">
             <a class="icon-link" href="/saved" title="Saved opportunities">Saved</a>
             <a class="icon-link" href="/alerts" title="Your alerts">Alerts</a>
-            {% if session.username %}
-              <span class="user-pill" title="Current user">{{ session.username }}</span>
-              <a class="icon-link" href="/logout" title="Logout">Logout</a>
-            {% else %}
-              <a class="icon-link" href="/login" title="Sign in to your account">Sign In</a>
-            {% endif %}
+            <span class="user-pill" title="Public access">Public access</span>
           </div>
           <div class="top-datetime" id="topDateTime" aria-live="polite"></div>
         </div>
@@ -38,14 +29,9 @@
       <nav class="site-nav">
         <a href="/" class="nav-pill {% if request.path == '/' %}active{% endif %}">Home</a>
         <a href="/opportunities" class="nav-pill {% if request.path.startswith('/opportunities') %}active{% endif %}">Opportunities</a>
-        <a href="/submit" class="nav-pill {% if request.path.startswith('/submit') %}active{% endif %}">Submit Data</a>
+        <a href="/submit" class="nav-pill {% if request.path.startswith('/submit') %}active{% endif %}">Report Delay</a>
         <a href="/dashboard" class="nav-pill {% if request.path.startswith('/dashboard') %}active{% endif %}">Dashboard</a>
         <a href="/insights" class="nav-pill {% if request.path.startswith('/insights') %}active{% endif %}">Insights</a>
-        <a href="/preferences" class="nav-pill {% if request.path.startswith('/preferences') %}active{% endif %}">Preferences</a>
-        <a href="/profile" class="nav-pill {% if request.path.startswith('/profile') %}active{% endif %}">Profile</a>
-        {% if session.get('is_admin') %}
-          <a href="/admin" class="nav-pill admin-link {% if request.path.startswith('/admin') %}active{% endif %}">Admin</a>
-        {% endif %}
       </nav>
     </header>
     <main>
@@ -61,7 +47,9 @@
         </form>
       </div>
       {% endif %}
-      {% block content %}{% endblock %}
+      <div class="page-container">
+        {% block content %}{% endblock %}
+      </div>
     </main>
     <footer>
       <small>Measure delay. Expose inequality.</small>

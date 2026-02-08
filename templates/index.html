@@ -1,90 +1,148 @@
 {% extends 'base.html' %}
-{% block title %}Home · Awareness Delay{% endblock %}
+{% block title %}Home - Awareness Delay{% endblock %}
 {% block content %}
-  <div class="home-info glass-surface">
+  <section class="home-hero glass-surface">
+    <div class="home-hero-content">
+      <div class="home-hero-badge">Awareness Delay Platform</div>
+      <h1>One complete place to track, measure, and reduce opportunity delay.</h1>
+      <p>
+        This web app combines opportunity discovery, delay reporting, personal tracking,
+        and fairness analytics into one workflow.
+      </p>
+      <div class="home-hero-actions">
+        <a class="btn" href="/opportunities">Explore Opportunities</a>
+        <a class="btn btn-outline" href="/submit">Submit Delay Data</a>
+      </div>
+      <div class="home-hero-metrics">
+        <div>
+          <span>Core Goal</span>
+          <strong>Equal Access</strong>
+        </div>
+        <div>
+          <span>Workflow</span>
+          <strong>Submit -> Measure -> Act</strong>
+        </div>
+        <div>
+          <span>Data Signal</span>
+          <strong>Delay in Days</strong>
+        </div>
+      </div>
+    </div>
+    <div class="home-hero-visual">
+      <div class="hero-card">
+        <h4>All-in-One Experience</h4>
+        <p>Search opportunities, submit awareness timing, and read actionable insights.</p>
+        <div class="hero-bars">
+          <span style="width: 88%"></span>
+          <span style="width: 72%"></span>
+          <span style="width: 54%"></span>
+        </div>
+      </div>
+      <div class="hero-card secondary">
+        <h4>Built for teams and individuals</h4>
+        <p>Use personal tools and region-level dashboards from the same data source.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-info glass-surface">
     <div class="home-info-grid">
       <div>
-        <h2>What This Platform Does</h2>
+        <h2>Overall Web App Coverage</h2>
         <p>
-          We measure how long it takes for people to hear about opportunities and reveal
-          where access is delayed or unequal.
+          The platform covers the full cycle: find opportunities, capture announcement and
+          awareness dates, calculate delay, and surface fairness patterns by region.
         </p>
       </div>
       <div>
-        <h3>Who It’s For</h3>
+        <h3>Main Areas</h3>
         <p>
-          Students, job‑seekers, educators, and organizations who want fair, timely access
-          to internships, scholarships, and programs.
+          Opportunities, Submit Data, Dashboard, Insights, Saved, and Alerts.
         </p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="home-steps glass-surface">
+  <section class="home-steps glass-surface">
     <h3>How It Works</h3>
     <div class="home-steps-grid">
       <div class="step-card">
         <span class="step-number">1</span>
-        <h4>Submit</h4>
-        <p>Share when an opportunity was announced and when you first heard about it.</p>
+        <h4>Discover</h4>
+        <p>Browse live opportunities, filter by role and region, and track deadlines.</p>
       </div>
       <div class="step-card">
         <span class="step-number">2</span>
-        <h4>Measure</h4>
-        <p>We calculate delay and highlight patterns across regions and institutions.</p>
+        <h4>Report</h4>
+        <p>Submit announcement and awareness dates to produce measurable delay records.</p>
       </div>
       <div class="step-card">
         <span class="step-number">3</span>
-        <h4>Act</h4>
-        <p>Use insights to improve outreach and close information gaps.</p>
+        <h4>Improve</h4>
+        <p>Use dashboard and insights to identify risk areas and improve outreach timing.</p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="home-benefits glass-surface">
-    <h3>What You Get</h3>
+  <section class="home-benefits glass-surface">
+    <h3>Quick Navigation</h3>
     <div class="home-benefits-grid">
-      <div class="benefit">Clear visibility into who gets opportunities late</div>
-      <div class="benefit">Personalized recommendations and saved opportunities</div>
-      <div class="benefit">Data‑driven insights to improve fairness</div>
-      <div class="benefit">A simple place to track deadlines and alerts</div>
+      <a class="benefit" href="/opportunities">Browse all opportunities and apply filters</a>
+      <a class="benefit" href="/submit">Submit timing data to measure delay</a>
+      <a class="benefit" href="/dashboard">View aggregate delay metrics and tables</a>
+      <a class="benefit" href="/insights">Read trend analysis and risk segments</a>
+      <a class="benefit" href="/saved">Manage saved opportunities</a>
+      <a class="benefit" href="/alerts">Check updates and reminders</a>
     </div>
-  </div>
+  </section>
 
-  <div class="home-opps glass-surface">
-    <div class="home-opps-header">
-      <h3>🌍 Online Opportunities</h3>
-      <p>Curated opportunities from trusted organizations. Explore details on official pages.</p>
-    </div>
+  <section class="home-opps home-benefits glass-surface">
+    <h3>Live Opportunities Preview</h3>
     <div class="home-opps-grid">
-      {% for opp in online_opps %}
-      <div class="home-opp-card">
-        <div class="home-opp-head">
-          <h4>{{ opp.title }}</h4>
-          <span class="home-opp-company">{{ opp.company }}</span>
-        </div>
-        <div class="home-opp-meta">
-          <span class="home-opp-badge">{{ opp.type }}</span>
-          <span class="home-opp-badge">{{ opp.region }}</span>
-          <span class="home-opp-badge">{{ opp.category }}</span>
-        </div>
-        <p class="home-opp-desc">{{ opp.summary if opp.summary else opp.description }}</p>
-        <div class="home-opp-footer">
-          <span>📅 {{ opp.deadline }}</span>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <a href="{{ opp.url }}" target="_blank" rel="noopener">Visit →</a>
-            <form method="POST" action="/save-opportunity" style="margin:0;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="hidden" name="source" value="{{ opp.source }}">
-              <input type="hidden" name="source_id" value="{{ opp.source_id if opp.source_id is defined }}">
-              <input type="hidden" name="title" value="{{ opp.title }}">
-              <input type="hidden" name="url" value="{{ opp.url }}">
-              <button type="submit" style="background: none; border: none; color: #00ccff; font-weight: 600; cursor: pointer;">Save</button>
-            </form>
-          </div>
+      {% if online_opps %}
+        {% for opp in online_opps[:6] %}
+          <article class="home-opp-card">
+            <div class="home-opp-company">{{ opp.company or 'Opportunity Source' }}</div>
+            <h4>{{ opp.title or 'Opportunity' }}</h4>
+            <span class="home-opp-badge">{{ opp.type or 'Opportunity' }}</span>
+            <p class="home-opp-desc">{{ opp.description or 'Open opportunity listing.' }}</p>
+            <small>Region: {{ opp.region or 'Unknown' }}</small>
+            {% if opp.deadline %}
+              <small>Deadline: {{ opp.deadline }}</small>
+            {% endif %}
+            {% if opp.url %}
+              <a class="btn btn-outline" href="{{ opp.url }}" target="_blank" rel="noopener">Open Listing</a>
+            {% endif %}
+          </article>
+        {% endfor %}
+      {% else %}
+        <article class="home-opp-card">
+          <h4>No live opportunities available</h4>
+          <p class="home-opp-desc">Try again later or browse the full opportunities page.</p>
+          <a class="btn" href="/opportunities">Open Opportunities</a>
+        </article>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="team-section glass-surface">
+    <h3>Web Developers</h3>
+    <p class="subtitle">Built with focus on clarity, speed, and measurable fairness.</p>
+    <div class="team-grid">
+      <div class="team-card">
+        <img src="/static/dk11.jpeg" alt="Deepak Kumar" loading="lazy" decoding="async" width="120" height="120">
+        <div class="team-meta">
+          <h4>Deepak Kumar</h4>
+          <span>Web Developer</span>
         </div>
       </div>
-      {% endfor %}
+      <div class="team-card">
+        <img src="/static/bo08.jpeg" alt="Boopathi" loading="lazy" decoding="async" width="120" height="120">
+        <div class="team-meta">
+          <h4>Boopathi</h4>
+          <span>Web Developer</span>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

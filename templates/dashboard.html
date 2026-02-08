@@ -46,13 +46,29 @@
   </div>
 
   {% if data.rows %}
-  <div class="chart-mini glass-surface fade-in" style="animation-delay: 0.5s">
-    <div class="chart-mini-header">
-      <h3>Delay Category Snapshot</h3>
+  <div class="summary-panel glass-surface fade-in" style="animation-delay: 0.5s">
+    <div class="summary-header">
+      <h3>Submission Highlights</h3>
       <span>Last {{ data.rows|length }} submissions</span>
     </div>
-    <div class="chart-mini-body">
-      <canvas id="delayCategoryChart" height="120"></canvas>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <span>Total</span>
+        <strong>{{ data.total }}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Avg Delay</span>
+        <strong>{{ data.avg_delay or '—' }} days</strong>
+      </div>
+      <div class="summary-card">
+        <span>Late %</span>
+        <strong>{{ data.late_percent }}%</strong>
+      </div>
+    </div>
+    <div class="summary-tags">
+      {% for label, count in data.categories.items() %}
+      <span class="summary-tag">{{ label }} · {{ count }}</span>
+      {% endfor %}
     </div>
   </div>
 
@@ -104,87 +120,5 @@
   </div>
   {% endif %}
 </div>
-
-<!-- Online Opportunities Section -->
-{% if data.online_opportunities %}
-<div class="admin-section fade-in glass-surface" style="animation-delay: 0.5s; margin-top: 40px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h3 style="color: var(--text);">🌍 Online Opportunities</h3>
-    <a href="/opportunities" style="background: linear-gradient(135deg, #c66d3d, #ff9f5a); color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">View All →</a>
-  </div>
-  <p style="color: var(--muted); margin-bottom: 20px; font-size: 14px;">
-    Curated opportunities from leading companies worldwide. Click "Visit Page" to explore in detail.
-  </p>
-  
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
-    {% for opp in data.online_opportunities[:6] %}
-    <div class="glass-surface" style="background: #fff; border: 1px solid rgba(36,26,18,0.12); border-radius: 10px; padding: 16px; transition: all 0.3s ease; display: flex; flex-direction: column;">
-      <h4 style="margin: 0 0 8px; color: var(--text); font-size: 14px; font-weight: 600;">{{ opp.title }}</h4>
-      <p style="color: #c66d3d; font-size: 12px; font-weight: 600; margin: 0 0 12px;">{{ opp.company }}</p>
-      
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
-        <span style="background: rgba(31,122,140,0.16); color: var(--text); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ opp.type }}</span>
-        <span style="background: rgba(198,109,61,0.2); color: var(--text); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ opp.salary }}</span>
-      </div>
-      
-      <p style="color: var(--muted); font-size: 12px; line-height: 1.4; margin: 0 0 12px; flex-grow: 1;">{{ opp.description }}</p>
-      
-      <div style="font-size: 11px; color: var(--muted); margin-bottom: 12px;">
-        <p style="margin: 4px 0;">📍 {{ opp.region }}</p>
-        <p style="margin: 4px 0;">📅 Deadline: {{ opp.deadline }}</p>
-      </div>
-      
-      <a href="{{ opp.url }}" target="_blank" rel="noopener" style="background: linear-gradient(135deg, #c66d3d, #ff9f5a); color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; text-align: center; font-size: 12px; font-weight: 600;">Visit Page →</a>
-    </div>
-    {% endfor %}
-  </div>
-  
-  <a href="/opportunities" style="display: inline-block; margin-top: 16px; color: #c66d3d; text-decoration: none; font-weight: 600; font-size: 14px;">View all {{ data.online_opportunities|length }} opportunities →</a>
-</div>
-{% endif %}
-
-{% if data.rows %}
-<script>
-  (function () {
-    const ctx = document.getElementById('delayCategoryChart');
-    if (!ctx || !window.Chart) return;
-    const categories = {{ data.categories|tojson }};
-    const labels = Object.keys(categories);
-    const values = Object.values(categories);
-    if (!labels.length) return;
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          backgroundColor: ['#1f7a8c', '#c66d3d', '#d97706', '#6b7280'],
-          borderRadius: 8,
-          maxBarThickness: 32
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: true }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#6f5c4f', font: { size: 11 } }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(36,26,18,0.08)' },
-            ticks: { color: '#6f5c4f', font: { size: 11 } }
-          }
-        }
-      }
-    });
-  })();
-</script>
-{% endif %}
 
 {% endblock %}
