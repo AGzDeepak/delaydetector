@@ -47,8 +47,11 @@ EXTERNAL_REQUEST_TIMEOUT = int(os.environ.get('EXTERNAL_REQUEST_TIMEOUT', '15'))
 STATIC_CACHE_DEFAULT = int(os.environ.get('STATIC_CACHE_DEFAULT', '86400'))
 STATIC_CACHE_SHORT = int(os.environ.get('STATIC_CACHE_SHORT', '604800'))
 STATIC_CACHE_LONG = int(os.environ.get('STATIC_CACHE_LONG', '2592000'))
-SITE_BASE_URL = os.environ.get('SITE_BASE_URL', '').strip().rstrip('/')
-GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION', '').strip()
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'https://awareness-delay.onrender.com').strip().rstrip('/')
+GOOGLE_SITE_VERIFICATION = os.environ.get(
+    'GOOGLE_SITE_VERIFICATION',
+    'zn6e5WtR3PhASeTbbM7yGIZ4G6cdLD77TXPSQEBqaZ0'
+).strip()
 
 DEFAULT_EXTERNAL_SOURCES = [
     {
