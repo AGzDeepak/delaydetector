@@ -1,0 +1,28 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Runtime artifacts
+*.log
+app.log
+lt.out.log
+lt.err.log
+
+# Local database and backups
+data.db
+*.db-journal
+backups/
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
