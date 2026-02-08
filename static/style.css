@@ -449,6 +449,10 @@ a{color:inherit}
 }
 
 @media (max-width:768px){
+  .site-header{
+    position:static;
+    top:auto;
+  }
   main{padding:16px 12px 44px}
   .page-container{gap:18px}
   .topbar{padding:12px 12px 8px;gap:12px;align-items:flex-start}
