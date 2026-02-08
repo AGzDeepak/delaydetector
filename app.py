@@ -72,6 +72,8 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 RATE_LIMIT = {}
+EXTERNAL_REFRESH_LOCK = threading.Lock()
+EXTERNAL_REFRESH_IN_PROGRESS = False
 
 INDIA_STATES = [
     'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
@@ -1217,6 +1219,33 @@ def refresh_external_opportunities(db):
     db.commit()
     return total_added
 
+def refresh_external_opportunities_async():
+    global EXTERNAL_REFRESH_IN_PROGRESS
+    with EXTERNAL_REFRESH_LOCK:
+        if EXTERNAL_REFRESH_IN_PROGRESS:
+            return False
+        EXTERNAL_REFRESH_IN_PROGRESS = True
+
+    def _worker():
+        global EXTERNAL_REFRESH_IN_PROGRESS
+        db = None
+        try:
+            db = sqlite3.connect(DB_PATH)
+            db.row_factory = sqlite3.Row
+            refresh_external_opportunities(db)
+        except Exception:
+            pass
+        finally:
+            try:
+                if db is not None:
+                    db.close()
+            finally:
+                with EXTERNAL_REFRESH_LOCK:
+                    EXTERNAL_REFRESH_IN_PROGRESS = False
+
+    threading.Thread(target=_worker, daemon=True, name='external-refresh-worker').start()
+    return True
+
 def get_external_opportunities(db, limit=None, include_unapproved=False):
     sql = 'SELECT * FROM external_opportunities'
     if not include_unapproved:
@@ -1248,17 +1277,14 @@ def get_live_opportunities(db, limit=None, user_id=None, include_unapproved=Fals
     if has_sources:
         cached_count = db.execute('SELECT COUNT(*) as c FROM external_opportunities').fetchone()['c']
         if cached_count == 0:
-            try:
-                refresh_external_opportunities(db)
-            except Exception:
-                pass
+            refresh_external_opportunities_async()
         elif AUTO_REFRESH_EXTERNAL:
             last = db.execute('SELECT MAX(last_fetched) as lf FROM external_sources WHERE active = 1').fetchone()
             if last and last['lf']:
                 try:
                     lf_dt = datetime.fromisoformat(last['lf'])
                     if datetime.utcnow() - lf_dt > timedelta(minutes=EXTERNAL_REFRESH_MINUTES):
-                        refresh_external_opportunities(db)
+                        refresh_external_opportunities_async()
                 except Exception:
                     pass
     external = get_external_opportunities(db, limit=limit, include_unapproved=include_unapproved)
@@ -1404,6 +1430,10 @@ def index():
     db = get_db()
     online_opps = get_live_opportunities(db, limit=8, user_id=session.get('user_id'))
     return render_template('index.html', online_opps=online_opps)
+
+@app.route('/healthz')
+def healthz():
+    return {'status': 'ok'}, 200
 
 
 @app.route('/submit', methods=['GET', 'POST'])
