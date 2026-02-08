@@ -23,6 +23,7 @@
           <span class="brand-mark">A</span>
           <span class="brand-text">Get Update</span>
         </a>
+        <button class="mobile-menu-btn" type="button" aria-controls="siteNav" aria-expanded="false">Menu</button>
         <form class="site-search" action="/opportunities" method="GET" role="search">
           <input type="text" name="search" placeholder="Search opportunities, companies, roles">
           <button type="submit">Search</button>
@@ -36,7 +37,7 @@
           <div class="top-datetime" id="topDateTime" aria-live="polite"></div>
         </div>
       </div>
-      <nav class="site-nav">
+      <nav class="site-nav" id="siteNav">
         <a href="/" class="nav-pill {% if request.path == '/' %}active{% endif %}">Home</a>
         <a href="/opportunities" class="nav-pill {% if request.path.startswith('/opportunities') %}active{% endif %}">Opportunities</a>
         <a href="/submit" class="nav-pill {% if request.path.startswith('/submit') %}active{% endif %}">Report Delay</a>
@@ -80,6 +81,44 @@
 
       (function () {
         const header = document.querySelector('.site-header');
+        const menuBtn = header ? header.querySelector('.mobile-menu-btn') : null;
+        if (header && menuBtn && window.matchMedia) {
+          const mobileQuery = window.matchMedia('(max-width: 768px)');
+          const setMenuState = (open) => {
+            header.classList.toggle('mobile-menu-open', open);
+            menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          };
+
+          menuBtn.addEventListener('click', () => {
+            const open = !header.classList.contains('mobile-menu-open');
+            setMenuState(open);
+            if (open) {
+              header.classList.remove('mobile-nav-hidden');
+            }
+          });
+
+          header.querySelectorAll('.site-nav a').forEach((link) => {
+            link.addEventListener('click', () => {
+              if (mobileQuery.matches) {
+                setMenuState(false);
+              }
+            });
+          });
+
+          document.addEventListener('click', (event) => {
+            if (!mobileQuery.matches) return;
+            if (!header.contains(event.target)) {
+              setMenuState(false);
+            }
+          });
+
+          if (mobileQuery.addEventListener) {
+            mobileQuery.addEventListener('change', () => {
+              setMenuState(false);
+            });
+          }
+        }
+
         if (!header || !window.matchMedia) return;
         const mobileQuery = window.matchMedia('(max-width: 768px)');
         let lastY = window.scrollY || 0;
@@ -88,6 +127,12 @@
         const syncHeaderVisibility = () => {
           const y = window.scrollY || 0;
           if (!mobileQuery.matches) {
+            header.classList.remove('mobile-nav-hidden');
+            lastY = y;
+            ticking = false;
+            return;
+          }
+          if (header.classList.contains('mobile-menu-open')) {
             header.classList.remove('mobile-nav-hidden');
             lastY = y;
             ticking = false;
