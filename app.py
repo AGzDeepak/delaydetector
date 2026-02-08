@@ -14,9 +14,10 @@ from email.message import EmailMessage
 import logging
 import secrets
 import shutil
+import re
+from werkzeug.exceptions import HTTPException
 
 APP_DIR = Path(__file__).parent
-DB_PATH = APP_DIR / 'data.db'
 
 def load_env_file(path):
     if not path.exists():
@@ -35,17 +36,183 @@ def load_env_file(path):
         pass
 
 load_env_file(APP_DIR / '.env')
+DB_PATH = Path(os.environ.get('DB_PATH', str(APP_DIR / 'data.db')))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 EXTERNAL_REFRESH_MINUTES = int(os.environ.get('EXTERNAL_REFRESH_MINUTES', '720'))
 EXTERNAL_MAX_PER_SOURCE = int(os.environ.get('EXTERNAL_MAX_PER_SOURCE', '200'))
 OPPS_PAGE_SIZE = int(os.environ.get('OPPS_PAGE_SIZE', '24'))
 AUTO_REFRESH_EXTERNAL = os.environ.get('AUTO_REFRESH_EXTERNAL', '0') == '1'
+EXTERNAL_AUTO_APPROVE = os.environ.get('EXTERNAL_AUTO_APPROVE', '1') == '1'
+EXTERNAL_REQUEST_TIMEOUT = int(os.environ.get('EXTERNAL_REQUEST_TIMEOUT', '15'))
+STATIC_CACHE_DEFAULT = int(os.environ.get('STATIC_CACHE_DEFAULT', '86400'))
+STATIC_CACHE_SHORT = int(os.environ.get('STATIC_CACHE_SHORT', '604800'))
+STATIC_CACHE_LONG = int(os.environ.get('STATIC_CACHE_LONG', '2592000'))
+
+DEFAULT_EXTERNAL_SOURCES = [
+    {
+        'name': 'RemoteOK Jobs',
+        'url': 'https://remoteok.com/api',
+        'kind': 'json'
+    },
+    {
+        'name': 'We Work Remotely',
+        'url': 'https://weworkremotely.com/categories/remote-programming-jobs.rss',
+        'kind': 'rss'
+    },
+    {
+        'name': 'Arbeitnow Job Board',
+        'url': 'https://www.arbeitnow.com/api/job-board-api',
+        'kind': 'json'
+    }
+]
 
 app = Flask(__name__)
-app.secret_key = 'dev-secret-change-me'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 app.permanent_session_lifetime = timedelta(minutes=30)
 logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 RATE_LIMIT = {}
+
+INDIA_STATES = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
+    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+    'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttarakhand', 'Uttar Pradesh', 'West Bengal'
+]
+
+INDIA_UNION_TERRITORIES = [
+    'Andaman and Nicobar Islands', 'Chandigarh',
+    'Dadra and Nagar Haveli and Daman and Diu', 'Delhi',
+    'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+]
+
+STATE_CAPITALS = {
+    'Andhra Pradesh': 'Amaravati',
+    'Arunachal Pradesh': 'Itanagar',
+    'Assam': 'Dispur',
+    'Bihar': 'Patna',
+    'Chhattisgarh': 'Raipur',
+    'Goa': 'Panaji',
+    'Gujarat': 'Gandhinagar',
+    'Haryana': 'Chandigarh',
+    'Himachal Pradesh': 'Shimla',
+    'Jharkhand': 'Ranchi',
+    'Karnataka': 'Bangalore',
+    'Kerala': 'Thiruvananthapuram',
+    'Madhya Pradesh': 'Bhopal',
+    'Maharashtra': 'Mumbai',
+    'Manipur': 'Imphal',
+    'Meghalaya': 'Shillong',
+    'Mizoram': 'Aizawl',
+    'Nagaland': 'Kohima',
+    'Odisha': 'Bhubaneshwar',
+    'Punjab': 'Chandigarh',
+    'Rajasthan': 'Jaipur',
+    'Sikkim': 'Gangtok',
+    'Tamil Nadu': 'Chennai',
+    'Telangana': 'Hyderabad',
+    'Tripura': 'Agartala',
+    'Uttarakhand': 'Dehradun',
+    'Uttar Pradesh': 'Lucknow',
+    'West Bengal': 'Kolkata'
+}
+
+UT_CAPITALS = {
+    'Andaman and Nicobar Islands': 'Sri Vijaya Puram',
+    'Chandigarh': 'Chandigarh',
+    'Dadra and Nagar Haveli and Daman and Diu': 'Daman',
+    'Delhi': 'Delhi',
+    'Jammu and Kashmir': 'Srinagar (S), Jammu (W)',
+    'Ladakh': 'Leh',
+    'Lakshadweep': 'Kavaratti',
+    'Puducherry': 'Puducherry'
+}
+
+INDIA_CAPITAL = 'Delhi'
+
+REGION_SYNONYMS = {
+    'nct of delhi': 'Delhi',
+    'national capital territory of delhi': 'Delhi',
+    'the government of nct of delhi': 'Delhi',
+    'new delhi': 'Delhi',
+    'orissa': 'Odisha',
+    'pondicherry': 'Puducherry',
+    'uttaranchal': 'Uttarakhand',
+    'andaman nicobar islands': 'Andaman and Nicobar Islands',
+    'andaman & nicobar islands': 'Andaman and Nicobar Islands',
+    'daman & diu': 'Dadra and Nagar Haveli and Daman and Diu',
+    'daman and diu': 'Dadra and Nagar Haveli and Daman and Diu',
+    'dadra and nagar haveli and daman & diu': 'Dadra and Nagar Haveli and Daman and Diu',
+    'dnhdd': 'Dadra and Nagar Haveli and Daman and Diu',
+    'dadra and nagar haveli': 'Dadra and Nagar Haveli and Daman and Diu',
+    'jammu & kashmir': 'Jammu and Kashmir',
+    'jammu and kashmir': 'Jammu and Kashmir',
+    'bangalore': 'Karnataka',
+    'bengaluru': 'Karnataka',
+    'mumbai': 'Maharashtra',
+    'chennai': 'Tamil Nadu',
+    'kolkata': 'West Bengal',
+    'hyderabad': 'Telangana'
+}
+
+CENTRAL_TOKENS = {
+    'all india', 'india', 'central', 'national', 'pan india', 'nationwide'
+}
+
+STATIC_CACHE_BY_EXT = {
+    '.css': STATIC_CACHE_SHORT,
+    '.js': STATIC_CACHE_SHORT,
+    '.png': STATIC_CACHE_LONG,
+    '.jpg': STATIC_CACHE_LONG,
+    '.jpeg': STATIC_CACHE_LONG,
+    '.gif': STATIC_CACHE_LONG,
+    '.svg': STATIC_CACHE_LONG,
+    '.webp': STATIC_CACHE_LONG,
+    '.ico': STATIC_CACHE_LONG
+}
+
+def _normalize_region_key(text):
+    if not text:
+        return ''
+    cleaned = re.sub(r'[^a-z0-9\s]', ' ', text.lower())
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned
+
+REGION_LOOKUP = {}
+for name in INDIA_STATES + INDIA_UNION_TERRITORIES:
+    REGION_LOOKUP[_normalize_region_key(name)] = name
+for key, value in REGION_SYNONYMS.items():
+    REGION_LOOKUP[_normalize_region_key(key)] = value
+
+def extract_regions(region_value):
+    if not region_value:
+        return ['Unknown']
+    norm_full = _normalize_region_key(region_value)
+    for token in CENTRAL_TOKENS:
+        if token in norm_full:
+            return ['Central / All India']
+    parts = re.split(r'[,/;|]+', norm_full)
+    regions = set()
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        subparts = [p.strip() for p in part.split(' and ') if p.strip()]
+        for sub in subparts:
+            key = _normalize_region_key(sub)
+            if key in REGION_LOOKUP:
+                regions.add(REGION_LOOKUP[key])
+    return sorted(regions) if regions else ['Unknown']
+
+def get_region_capital(region_name):
+    if region_name in STATE_CAPITALS:
+        return STATE_CAPITALS[region_name]
+    if region_name in UT_CAPITALS:
+        return UT_CAPITALS[region_name]
+    if region_name == 'Central / All India':
+        return INDIA_CAPITAL
+    return '—'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -70,6 +237,29 @@ def verify_csrf():
     form_token = request.form.get('csrf_token')
     return token and form_token and token == form_token
 
+def ensure_session_user(db):
+    user_id = session.get('user_id')
+    if user_id:
+        return user_id
+    row = db.execute('SELECT id FROM users ORDER BY id ASC LIMIT 1').fetchone()
+    if row:
+        session['user_id'] = row['id']
+        return row['id']
+    username = f'guest_{int(time.time())}'
+    cursor = db.execute(
+        'INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+        (username, generate_password_hash(secrets.token_urlsafe(12)), 'user')
+    )
+    db.commit()
+    if cursor.lastrowid:
+        session['user_id'] = cursor.lastrowid
+        return cursor.lastrowid
+    row = db.execute('SELECT id FROM users ORDER BY id ASC LIMIT 1').fetchone()
+    if row:
+        session['user_id'] = row['id']
+        return row['id']
+    return None
+
 def is_rate_limited(key, limit=5, window_seconds=60):
     now = time.time()
     entries = RATE_LIMIT.get(key, [])
@@ -81,7 +271,23 @@ def is_rate_limited(key, limit=5, window_seconds=60):
     RATE_LIMIT[key] = entries
     return False
 
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
+
+def ensure_default_external_sources(db):
+    added = 0
+    for src in DEFAULT_EXTERNAL_SOURCES:
+        exists = db.execute(
+            'SELECT 1 FROM external_sources WHERE url = ? LIMIT 1',
+            (src['url'],)
+        ).fetchone()
+        if exists:
+            continue
+        db.execute(
+            'INSERT INTO external_sources (name, url, kind, active) VALUES (?, ?, ?, 1)',
+            (src['name'], src['url'], src['kind'])
+        )
+        added += 1
+    return added
 
 
 def init_db():
@@ -156,18 +362,6 @@ def init_db():
     )
     ''')
     db.execute('''
-    CREATE TABLE IF NOT EXISTS auth_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        username TEXT,
-        event TEXT NOT NULL,
-        ip_address TEXT,
-        user_agent TEXT,
-        success INTEGER DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    ''')
-    db.execute('''
     CREATE TABLE IF NOT EXISTS external_sources (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -215,14 +409,6 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
-    )
-    ''')
-    db.execute('''
-    CREATE TABLE IF NOT EXISTS login_otp (
-        email TEXT PRIMARY KEY,
-        code_hash TEXT NOT NULL,
-        expires_at TIMESTAMP NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
     db.execute('''
@@ -279,15 +465,13 @@ def init_db():
     db.execute('CREATE INDEX IF NOT EXISTS idx_external_approved ON external_opportunities (approved)')
     db.execute('CREATE INDEX IF NOT EXISTS idx_saved_user ON saved_opportunities (user_id)')
     db.execute('CREATE INDEX IF NOT EXISTS idx_alert_user ON alert_queue (user_id)')
-    db.execute('CREATE INDEX IF NOT EXISTS idx_auth_user ON auth_log (user_id)')
-    db.execute('CREATE INDEX IF NOT EXISTS idx_auth_event ON auth_log (event)')
-    db.execute('CREATE INDEX IF NOT EXISTS idx_login_otp_expires ON login_otp (expires_at)')
+    ensure_default_external_sources(db)
     db.commit()
     # seed a default user for testing if none exist
     cur = db.execute('SELECT COUNT(*) as c FROM users')
     row = cur.fetchone()
     if row and row[0] == 0:
-        db.execute('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+        db.execute('INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)',
                    ('admin', generate_password_hash('password'), 'admin'))
         db.commit()
     # ensure admins table is synced for any existing admin users
@@ -302,17 +486,12 @@ def is_admin_user(user_id, db):
     row = db.execute('SELECT 1 FROM admins WHERE user_id = ?', (user_id,)).fetchone()
     return row is not None
 
+init_db()
+
 def log_audit(db, user_id, action, table_name=None, record_id=None, changes=None):
     db.execute('''INSERT INTO audit_log (user_id, action, table_name, record_id, changes)
         VALUES (?, ?, ?, ?, ?)
     ''', (user_id, action, table_name, record_id, changes))
-
-def log_auth_event(db, user_id, username, event, success=1):
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    ua = request.headers.get('User-Agent', '')
-    db.execute('''INSERT INTO auth_log (user_id, username, event, ip_address, user_agent, success)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (user_id, username, event, ip, ua, success))
 
 def categorize_delay(days):
     if days is None:
@@ -330,6 +509,10 @@ def parse_date(s):
         return datetime.fromisoformat(s)
     except Exception:
         return None
+
+def _static_cache_seconds(path):
+    ext = Path(path or '').suffix.lower()
+    return STATIC_CACHE_BY_EXT.get(ext, STATIC_CACHE_DEFAULT)
 
 def validate_password(pw):
     if not pw or len(pw) < 8:
@@ -814,9 +997,42 @@ def filter_opportunities(opps, query=None, region=None, internship_type=None):
     
     return opps
 
+def filter_online_opportunities(query=None, region=None, internship_type=None):
+    """Backward-compatible helper expected by older tests/scripts."""
+    return filter_opportunities(
+        get_online_opportunities(),
+        query=query,
+        region=region,
+        internship_type=internship_type
+    )
+
+def _clean_text(value, limit=240):
+    text = re.sub(r'<[^>]+>', ' ', value or '')
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text[:limit]
+
+def _pick_first_value(record, keys):
+    for key in keys:
+        value = record.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, (int, float)):
+            return str(value)
+    return ''
+
+def _normalize_json_records(data):
+    if isinstance(data, dict):
+        for key in ('items', 'data', 'results', 'jobs', 'opportunities'):
+            value = data.get(key)
+            if isinstance(value, list):
+                return value
+    if isinstance(data, list):
+        return data
+    return []
+
 def _fetch_url(url):
     req = Request(url, headers={'User-Agent': 'AwarenessDelayBot/1.0'})
-    with urlopen(req, timeout=10) as resp:
+    with urlopen(req, timeout=EXTERNAL_REQUEST_TIMEOUT) as resp:
         return resp.read()
 
 def _parse_rss(content, source_name):
@@ -824,12 +1040,37 @@ def _parse_rss(content, source_name):
     try:
         root = ET.fromstring(content)
         channel = root.find('channel')
-        if channel is None:
+        if channel is not None:
+            for item in channel.findall('item'):
+                title = (item.findtext('title') or '').strip()
+                link = (item.findtext('link') or '').strip()
+                desc = _clean_text(item.findtext('description') or '')
+                if not title:
+                    continue
+                items.append({
+                    'title': title,
+                    'company': source_name,
+                    'type': 'Opportunity',
+                    'region': 'Unknown',
+                    'deadline': '',
+                    'url': link,
+                    'description': desc,
+                    'salary': '',
+                    'duration': '',
+                    'online': True,
+                    'source': source_name
+                })
             return items
-        for item in channel.findall('item'):
-            title = (item.findtext('title') or '').strip()
-            link = (item.findtext('link') or '').strip()
-            desc = (item.findtext('description') or '').strip()
+
+        # Fallback for Atom feeds.
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        for entry in root.findall('.//atom:entry', ns):
+            title = (entry.findtext('atom:title', default='', namespaces=ns) or '').strip()
+            summary = _clean_text(entry.findtext('atom:summary', default='', namespaces=ns) or '')
+            link = ''
+            link_node = entry.find("atom:link[@rel='alternate']", ns) or entry.find('atom:link', ns)
+            if link_node is not None:
+                link = (link_node.get('href') or '').strip()
             if not title:
                 continue
             items.append({
@@ -839,7 +1080,7 @@ def _parse_rss(content, source_name):
                 'region': 'Unknown',
                 'deadline': '',
                 'url': link,
-                'description': desc[:240],
+                'description': summary,
                 'salary': '',
                 'duration': '',
                 'online': True,
@@ -855,26 +1096,28 @@ def _parse_json(content, source_name):
         data = json.loads(content.decode('utf-8'))
     except Exception:
         return items
-    if isinstance(data, dict) and 'items' in data:
-        data = data['items']
-    if not isinstance(data, list):
-        return items
+    data = _normalize_json_records(data)
     for it in data:
         if not isinstance(it, dict):
             continue
-        title = it.get('title') or it.get('name') or it.get('position') or ''
+        title = _pick_first_value(it, ('title', 'name', 'position', 'role'))
         if not title:
             continue
+        type_value = it.get('type') or it.get('category') or it.get('job_type') or it.get('job_types') or ''
+        if isinstance(type_value, list):
+            type_value = ', '.join(str(v) for v in type_value if v)
+        type_value = (str(type_value).strip() if type_value else '') or 'Opportunity'
+        description = _pick_first_value(it, ('description', 'summary', 'snippet', 'details'))
         items.append({
             'title': title,
-            'company': it.get('company') or it.get('org') or source_name,
-            'type': it.get('type') or it.get('category') or 'Opportunity',
-            'region': it.get('region') or it.get('location') or 'Unknown',
-            'deadline': it.get('deadline') or it.get('close_date') or '',
-            'url': it.get('url') or it.get('link') or '',
-            'description': (it.get('description') or '')[:240],
-            'salary': it.get('salary') or '',
-            'duration': it.get('duration') or '',
+            'company': _pick_first_value(it, ('company', 'company_name', 'organization', 'org')) or source_name,
+            'type': type_value,
+            'region': _pick_first_value(it, ('region', 'location', 'country')) or 'Unknown',
+            'deadline': _pick_first_value(it, ('deadline', 'close_date', 'expires_at', 'expiry_date')),
+            'url': _pick_first_value(it, ('url', 'link', 'redirect_url', 'apply_url')),
+            'description': _clean_text(description),
+            'salary': _pick_first_value(it, ('salary', 'compensation', 'salary_range')),
+            'duration': _pick_first_value(it, ('duration', 'tenure', 'period')),
             'online': bool(it.get('online')) if 'online' in it else True,
             'source': source_name
         })
@@ -923,7 +1166,6 @@ def _parse_html(content, source_name):
 def refresh_external_opportunities(db):
     sources = db.execute('SELECT * FROM external_sources WHERE active = 1').fetchall()
     total_added = 0
-    preferences = db.execute('SELECT * FROM user_preferences').fetchall()
     for src in sources:
         try:
             content = _fetch_url(src['url'])
@@ -933,18 +1175,34 @@ def refresh_external_opportunities(db):
                 items = _parse_json(content, src['name'])
             else:
                 items = _parse_html(content, src['name'])
-        except URLError:
+        except (URLError, TimeoutError):
+            continue
+        except Exception:
             continue
         for item in items:
+            item_title = (item.get('title') or '').strip()
+            item_url = (item.get('url') or '').strip()
+            if not item_title:
+                continue
+            exists = db.execute('''
+                SELECT 1 FROM external_opportunities
+                WHERE source_id = ? AND title = ? AND IFNULL(url, '') = IFNULL(?, '')
+                LIMIT 1
+            ''', (src['id'], item_title, item_url)).fetchone()
+            if exists:
+                continue
             db.execute('''
                 INSERT INTO external_opportunities
                 (source_id, title, company, type, region, deadline, url, description, salary, duration, online, source, approved)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
             ''', (
-                src['id'], item['title'], item['company'], item['type'], item['region'],
-                item['deadline'], item['url'], item['description'], item['salary'],
-                item['duration'], 1 if item['online'] else 0, item['source'], 0
+                src['id'], item_title, item.get('company') or src['name'], item.get('type') or 'Opportunity',
+                item.get('region') or 'Unknown', item.get('deadline') or '', item_url,
+                item.get('description') or '', item.get('salary') or '',
+                item.get('duration') or '', 1 if item.get('online', True) else 0,
+                item.get('source') or src['name'], 1 if EXTERNAL_AUTO_APPROVE else 0
             ))
+            total_added += 1
         db.execute('UPDATE external_sources SET last_fetched = CURRENT_TIMESTAMP WHERE id = ?', (src['id'],))
         db.execute('''
             DELETE FROM external_opportunities
@@ -956,7 +1214,6 @@ def refresh_external_opportunities(db):
                 LIMIT ?
               )
         ''', (src['id'], src['id'], EXTERNAL_MAX_PER_SOURCE))
-        total_added += len(items)
     db.commit()
     return total_added
 
@@ -987,16 +1244,23 @@ def enrich_opportunities(opps, prefs=None):
     return enriched
 
 def get_live_opportunities(db, limit=None, user_id=None, include_unapproved=False):
-    if AUTO_REFRESH_EXTERNAL:
-        last = db.execute('SELECT MAX(last_fetched) as lf FROM external_sources WHERE active = 1').fetchone()
-        has_sources = db.execute('SELECT 1 FROM external_sources WHERE active = 1 LIMIT 1').fetchone() is not None
-        if has_sources and last and last['lf']:
+    has_sources = db.execute('SELECT 1 FROM external_sources WHERE active = 1 LIMIT 1').fetchone() is not None
+    if has_sources:
+        cached_count = db.execute('SELECT COUNT(*) as c FROM external_opportunities').fetchone()['c']
+        if cached_count == 0:
             try:
-                lf_dt = datetime.fromisoformat(last['lf'])
-                if datetime.utcnow() - lf_dt > timedelta(minutes=EXTERNAL_REFRESH_MINUTES):
-                    refresh_external_opportunities(db)
+                refresh_external_opportunities(db)
             except Exception:
                 pass
+        elif AUTO_REFRESH_EXTERNAL:
+            last = db.execute('SELECT MAX(last_fetched) as lf FROM external_sources WHERE active = 1').fetchone()
+            if last and last['lf']:
+                try:
+                    lf_dt = datetime.fromisoformat(last['lf'])
+                    if datetime.utcnow() - lf_dt > timedelta(minutes=EXTERNAL_REFRESH_MINUTES):
+                        refresh_external_opportunities(db)
+                except Exception:
+                    pass
     external = get_external_opportunities(db, limit=limit, include_unapproved=include_unapproved)
     if external:
         prefs = None
@@ -1102,26 +1366,6 @@ def send_test_email(email):
     msg_server.quit()
     return True, None
 
-def send_login_otp_email(email, code):
-    host = os.environ.get('SMTP_HOST')
-    port = int(os.environ.get('SMTP_PORT', '587'))
-    user = os.environ.get('SMTP_USER')
-    password = os.environ.get('SMTP_PASS')
-    sender = os.environ.get('SMTP_FROM') or user
-    if not host or not user or not password:
-        return False, 'SMTP not configured'
-    msg_server = smtplib.SMTP(host, port, timeout=10)
-    msg_server.starttls()
-    msg_server.login(user, password)
-    msg = EmailMessage()
-    msg['Subject'] = 'Your Login OTP - Awareness Delay'
-    msg['From'] = sender
-    msg['To'] = email
-    msg.set_content(f'Your OTP is: {code}\nThis code expires in 10 minutes.')
-    msg_server.send_message(msg)
-    msg_server.quit()
-    return True, None
-
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
@@ -1130,23 +1374,30 @@ def close_connection(exception):
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return e
     logging.exception("Unhandled error")
     return "An internal error occurred. Please try again later.", 500
 
 @app.before_request
 def enforce_csrf_and_rate_limits():
     if request.method == 'POST':
-        if request.path not in {'/login', '/register'} and not verify_csrf():
+        if not verify_csrf():
             abort(400)
+    ensure_session_user(get_db())
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    if request.path in {'/login', '/register', '/login/otp/request', '/login/otp/verify'} and request.method == 'POST':
-        if is_rate_limited(f'auth:{ip}', limit=5, window_seconds=60):
-            flash('Too many attempts. Try again shortly.')
-            return redirect(url_for('login') if request.path == '/login' else url_for('register'))
     if request.path == '/submit' and request.method == 'POST':
         if is_rate_limited(f'submit:{ip}', limit=8, window_seconds=60):
             flash('Too many submissions. Please slow down.')
             return redirect(url_for('submit'))
+
+@app.after_request
+def add_static_cache_headers(response):
+    if request.path.startswith('/static/'):
+        max_age = _static_cache_seconds(request.path)
+        response.headers['Cache-Control'] = f'public, max-age={max_age}'
+        response.headers['Vary'] = 'Accept-Encoding'
+    return response
 
 @app.route('/')
 def index():
@@ -1155,37 +1406,7 @@ def index():
     return render_template('index.html', online_opps=online_opps)
 
 
-def login_required(f):
-    from functools import wraps
-
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        if not session.get('user_id'):
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-
-    return wrapped
-
-def admin_required(f):
-    """Decorator for admin-only routes"""
-    from functools import wraps
-
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        if not session.get('user_id'):
-            return redirect(url_for('login'))
-        
-        db = get_db()
-        if not is_admin_user(session.get('user_id'), db):
-            flash('Admin access required', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return f(*args, **kwargs)
-
-    return wrapped
-
 @app.route('/submit', methods=['GET', 'POST'])
-@login_required
 def submit():
     if request.method == 'POST':
         name = request.form.get('opportunity_name')
@@ -1237,155 +1458,7 @@ def submit():
     return render_template('submit.html')
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = (request.form.get('email') or '').strip()
-        password = request.form.get('password')
-        if not username or not password:
-            flash('Username and password required')
-            db = get_db()
-            log_auth_event(db, None, username, 'register', success=0)
-            db.commit()
-            return redirect(url_for('register'))
-        if not validate_password(password):
-            flash('Password must be at least 8 characters and include a letter and a number')
-            db = get_db()
-            log_auth_event(db, None, username, 'register', success=0)
-            db.commit()
-            return redirect(url_for('register'))
-        db = get_db()
-        try:
-            db.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-                       (username, email if email else None, generate_password_hash(password)))
-            db.commit()
-            user_id = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
-            log_auth_event(db, user_id['id'] if user_id else None, username, 'register', success=1)
-            db.commit()
-        except sqlite3.IntegrityError:
-            flash('Username or email already taken')
-            log_auth_event(db, None, username, 'register', success=0)
-            db.commit()
-            return redirect(url_for('register'))
-        flash('Account created — please log in')
-        return redirect(url_for('login'))
-    return render_template('register.html')
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = (request.form.get('username') or '').strip()
-        password = request.form.get('password')
-        db = get_db()
-        row = db.execute(
-            'SELECT * FROM users WHERE username = ?',
-            (username,)
-        ).fetchone()
-        if row and check_password_hash(row['password_hash'], password):
-            session.clear()
-            session.permanent = True
-            session['user_id'] = row['id']
-            session['username'] = row['username']
-            session['is_admin'] = is_admin_user(row['id'], db)
-            log_auth_event(db, row['id'], row['username'], 'login', success=1)
-            db.commit()
-            flash('Logged in')
-            return redirect(url_for('dashboard'))
-        flash('Invalid credentials')
-        log_auth_event(db, row['id'] if row else None, username, 'login', success=0)
-        db.commit()
-        return redirect(url_for('login'))
-    return render_template('login.html')
-
-
-@app.route('/login/otp/request', methods=['POST'])
-def login_otp_request():
-    email = (request.form.get('email') or '').strip()
-    if not email:
-        flash('Email is required for OTP login')
-        return redirect(url_for('login'))
-    db = get_db()
-    user = db.execute('SELECT id, username FROM users WHERE email = ?', (email,)).fetchone()
-    if not user:
-        flash('No account found for that email')
-        log_auth_event(db, None, email, 'otp_request', success=0)
-        db.commit()
-        return redirect(url_for('login'))
-    if is_rate_limited(f'otp:{email}', limit=3, window_seconds=600):
-        flash('Too many OTP requests. Try again later.')
-        return redirect(url_for('login'))
-    code = f"{secrets.randbelow(1000000):06d}"
-    expires_at = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
-    db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
-    db.execute(
-        'INSERT INTO login_otp (email, code_hash, expires_at) VALUES (?, ?, ?)',
-        (email, generate_password_hash(code), expires_at)
-    )
-    db.commit()
-    ok, err = send_login_otp_email(email, code)
-    if not ok:
-        flash(f'OTP email failed: {err}')
-        return redirect(url_for('login'))
-    flash('OTP sent to your email')
-    log_auth_event(db, user['id'], user['username'], 'otp_request', success=1)
-    db.commit()
-    return redirect(url_for('login'))
-
-
-@app.route('/login/otp/verify', methods=['POST'])
-def login_otp_verify():
-    email = (request.form.get('email') or '').strip()
-    code = (request.form.get('otp') or '').strip()
-    if not email or not code:
-        flash('Email and OTP are required')
-        return redirect(url_for('login'))
-    db = get_db()
-    otp_row = db.execute('SELECT * FROM login_otp WHERE email = ?', (email,)).fetchone()
-    if not otp_row:
-        flash('OTP not found. Please request a new code.')
-        return redirect(url_for('login'))
-    expires_at = parse_date(otp_row['expires_at'])
-    if not expires_at or datetime.utcnow() > expires_at:
-        db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
-        db.commit()
-        flash('OTP expired. Please request a new code.')
-        return redirect(url_for('login'))
-    if not check_password_hash(otp_row['code_hash'], code):
-        flash('Invalid OTP')
-        log_auth_event(db, None, email, 'otp_verify', success=0)
-        db.commit()
-        return redirect(url_for('login'))
-    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-    if not user:
-        flash('Account not found for this email')
-        return redirect(url_for('login'))
-    db.execute('DELETE FROM login_otp WHERE email = ?', (email,))
-    db.commit()
-    session.clear()
-    session.permanent = True
-    session['user_id'] = user['id']
-    session['username'] = user['username']
-    session['is_admin'] = is_admin_user(user['id'], db)
-    log_auth_event(db, user['id'], user['username'], 'otp_login', success=1)
-    db.commit()
-    flash('Logged in with OTP')
-    return redirect(url_for('dashboard'))
-
-
-@app.route('/logout')
-def logout():
-    db = get_db()
-    if session.get('username'):
-        log_auth_event(db, session.get('user_id'), session.get('username'), 'logout', success=1)
-        db.commit()
-    session.clear()
-    flash('Logged out')
-    return redirect(url_for('index'))
-
 @app.route('/preferences', methods=['GET', 'POST'])
-@login_required
 def preferences():
     db = get_db()
     user_id = session.get('user_id')
@@ -1413,7 +1486,6 @@ def preferences():
     return render_template('preferences.html', pref=dict(pref) if pref else {})
 
 @app.route('/profile', methods=['GET', 'POST'])
-@login_required
 def profile():
     db = get_db()
     user_id = session.get('user_id')
@@ -1446,7 +1518,6 @@ def profile():
     return render_template('profile.html', profile={})
 
 @app.route('/saved')
-@login_required
 def saved():
     db = get_db()
     user_id = session.get('user_id')
@@ -1457,7 +1528,6 @@ def saved():
     return render_template('saved.html', saved=[dict(r) for r in rows])
 
 @app.route('/alerts')
-@login_required
 def alerts():
     db = get_db()
     user_id = session.get('user_id')
@@ -1474,7 +1544,6 @@ def alerts():
     return render_template('alerts.html', alerts=[dict(r) for r in rows])
 
 @app.route('/save-opportunity', methods=['POST'])
-@login_required
 def save_opportunity():
     db = get_db()
     user_id = session.get('user_id')
@@ -1509,7 +1578,6 @@ def save_opportunity():
     return redirect(request.referrer or url_for('opportunities'))
 
 @app.route('/dashboard')
-@login_required
 def dashboard():
     db = get_db()
     user_id = session.get('user_id')
@@ -1550,19 +1618,6 @@ def dashboard():
         cat = r['delay_category'] or 'Unknown'
         categories[cat] = categories.get(cat, 0) + 1
 
-    # Get online opportunities (for demo recommendations)
-    online_opps = get_live_opportunities(db, user_id=user_id)
-    # Filter by user's opportunities region if available (from their latest submission)
-    user_region = None
-    if rows:
-        user_region = rows[0]['region']
-    
-    if user_region:
-        filtered_online = filter_opportunities(get_live_opportunities(db, user_id=user_id), region=user_region)
-        online_opps = filtered_online if filtered_online else online_opps[:6]
-    else:
-        online_opps = online_opps[:6]
-
     data = {
         'total': total,
         'avg_delay': avg_delay,
@@ -1571,13 +1626,11 @@ def dashboard():
         'categories': categories,
         'rows': [dict(r) for r in rows],
         'recommendations': recommendations[:5],
-        'online_opportunities': online_opps,
         'is_admin': is_admin
     }
     return render_template('dashboard.html', data=data)
 
 @app.route('/insights')
-@login_required
 def insights():
     """Generate and display AI insights about opportunity awareness patterns"""
     db = get_db()
@@ -1602,12 +1655,49 @@ def insights():
     # Regional analysis
     regions = {}
     for r in rows:
-        region = r['region'] if r['region'] else 'Unknown'
-        if region not in regions:
-            regions[region] = {'total': 0, 'late': 0}
-        regions[region]['total'] += 1
-        if r['delay_category'] == 'Late Access':
-            regions[region]['late'] += 1
+        mapped_regions = extract_regions(r['region'])
+        for region in mapped_regions:
+            if region not in regions:
+                regions[region] = {'total': 0, 'late': 0, 'delay_sum': 0, 'delay_count': 0}
+            regions[region]['total'] += 1
+            if r['delay_category'] == 'Late Access':
+                regions[region]['late'] += 1
+            if r['delay_days'] is not None:
+                regions[region]['delay_sum'] += r['delay_days']
+                regions[region]['delay_count'] += 1
+
+    # India-focused: state vs central aggregation
+    def classify_scope(name):
+        if name == 'Central / All India':
+            return 'central'
+        if name in INDIA_UNION_TERRITORIES:
+            return 'central'
+        if name in INDIA_STATES:
+            return 'state'
+        return 'state'
+
+    state_stats = []
+    central_stats = []
+    unknown_total = regions.get('Unknown', {}).get('total', 0)
+    for region_name, data in regions.items():
+        avg_delay_region = (data['delay_sum'] / data['delay_count']) if data['delay_count'] else 0
+        late_pct_region = (data['late'] / data['total']) * 100 if data['total'] else 0
+        entry = {
+            'region': region_name,
+            'total': data['total'],
+            'late_pct': round(late_pct_region, 1),
+            'avg_delay': round(avg_delay_region, 1),
+            'capital': get_region_capital(region_name)
+        }
+        if region_name == 'Unknown':
+            continue
+        if classify_scope(region_name) == 'central':
+            central_stats.append(entry)
+        else:
+            state_stats.append(entry)
+
+    state_stats = sorted(state_stats, key=lambda x: x['late_pct'], reverse=True)
+    central_stats = sorted(central_stats, key=lambda x: x['late_pct'], reverse=True)
     
     high_risk_regions = []
     for region, data in regions.items():
@@ -1651,16 +1741,19 @@ def insights():
         'avg_ratio': f'{avg_ratio:.2f}',
         'max_ratio': f'{max_ratio:.2f}',
         'regions': len(regions),
-        'high_risk_regions': high_risk_regions
+        'high_risk_regions': high_risk_regions,
+        'state_stats': state_stats,
+        'central_stats': central_stats,
+        'unknown_total': unknown_total
     }
     
     return render_template('insights.html', insights=insights_list, insights_data=insights_data)
 
 @app.route('/opportunities')
-@login_required
 def opportunities():
     """Show all online opportunities with filtering"""
     db = get_db()
+    user_id = session.get('user_id')
     # Get filter parameters
     search_query = request.args.get('search', '')
     filter_region = request.args.get('region', '')
@@ -1669,23 +1762,23 @@ def opportunities():
     if page < 1:
         page = 1
     
-    # Get opportunities
+    # Fetch once and reuse for filters + dropdown values.
+    all_opps = get_live_opportunities(db, user_id=user_id)
     if search_query or filter_region or filter_type:
         opps = filter_opportunities(
-            get_live_opportunities(db, user_id=session.get('user_id')),
+            all_opps,
             query=search_query if search_query else None,
             region=filter_region if filter_region else None,
             internship_type=filter_type if filter_type else None
         )
     else:
-        opps = get_live_opportunities(db, user_id=session.get('user_id'))
+        opps = all_opps
     total_count = len(opps)
     start = (page - 1) * OPPS_PAGE_SIZE
     end = start + OPPS_PAGE_SIZE
     opps_page = opps[start:end]
     
     # Get unique values for filter dropdowns
-    all_opps = get_live_opportunities(db, user_id=session.get('user_id'))
     regions = sorted(set(
         region.strip()
         for opp in all_opps
@@ -1709,249 +1802,7 @@ def opportunities():
     }
     
     return render_template('opportunities.html', data=data)
-    if not insights:
-        insights.append('No strong inequality signals detected yet.')
 
-    return render_template('insights.html', insights=insights)
-
-# ADMIN PANEL - Full Control & Permissions
-@app.route('/admin')
-@admin_required
-def admin_panel():
-    """Admin dashboard with all system data and AI-powered recommendations"""
-    db = get_db()
-    
-    # Get all users
-    all_users = db.execute('SELECT id, username, role, created_at FROM users ORDER BY id').fetchall()
-    
-    # Get all opportunities with stats
-    all_opps = db.execute('''
-        SELECT opportunity_name, college_type, region, 
-               COUNT(*) as submissions,
-               AVG(delay_days) as avg_delay,
-               COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) as late_count
-        FROM awareness_data
-        GROUP BY opportunity_name
-        ORDER BY submissions DESC
-    ''').fetchall()
-    
-    # Get system statistics
-    total_users = len(all_users)
-    total_submissions = db.execute('SELECT COUNT(*) as c FROM awareness_data').fetchone()['c']
-    avg_system_delay = db.execute('SELECT AVG(delay_days) as avg FROM awareness_data').fetchone()['avg']
-    
-    # AI: Get high-risk regions (highest late access percentage)
-    high_risk_regions = db.execute('''
-        SELECT region, 
-               COUNT(*) as total,
-               COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) as late_count,
-               ROUND(COUNT(CASE WHEN delay_category = 'Late Access' THEN 1 END) * 100.0 / COUNT(*), 2) as late_percent
-        FROM awareness_data
-        GROUP BY region
-        ORDER BY late_percent DESC
-        LIMIT 5
-    ''').fetchall()
-    
-    admin_data = {
-        'users': [dict(u) for u in all_users],
-        'opportunities': [dict(o) for o in all_opps],
-        'total_users': total_users,
-        'total_submissions': total_submissions,
-        'avg_system_delay': round(avg_system_delay, 2) if avg_system_delay else 0,
-        'high_risk_regions': [dict(r) for r in high_risk_regions],
-        'sources': [dict(s) for s in db.execute('SELECT * FROM external_sources ORDER BY id').fetchall()],
-        'pending_opps': [dict(o) for o in db.execute('SELECT * FROM external_opportunities WHERE approved = 0 ORDER BY fetched_at DESC LIMIT 20').fetchall()],
-        'auth_logs': [dict(l) for l in db.execute('SELECT * FROM auth_log ORDER BY created_at DESC LIMIT 200').fetchall()]
-    }
-    
-    return render_template('admin_panel.html', admin_data=admin_data)
-
-@app.route('/admin/user-permissions', methods=['POST'])
-@admin_required
-def admin_user_permissions():
-    """Admin: Manage user permissions and roles"""
-    user_id = request.form.get('user_id')
-    action = request.form.get('action')
-    
-    if not user_id or not action:
-        flash('Invalid request', 'error')
-        return redirect(url_for('admin_panel'))
-    
-    db = get_db()
-    
-    if action == 'make_admin':
-        db.execute('UPDATE users SET role = ? WHERE id = ?', ('admin', user_id))
-        db.execute('INSERT OR IGNORE INTO admins (user_id) VALUES (?)', (user_id,))
-        log_audit(db, session.get('user_id'), 'UPDATE', 'admins', user_id, 'Promoted user to admin')
-        flash('User promoted to Admin', 'success')
-    elif action == 'make_user':
-        db.execute('UPDATE users SET role = ? WHERE id = ?', ('user', user_id))
-        db.execute('DELETE FROM admins WHERE user_id = ?', (user_id,))
-        log_audit(db, session.get('user_id'), 'UPDATE', 'admins', user_id, 'Demoted admin to user')
-        flash('User demoted to regular user', 'success')
-    elif action == 'delete':
-        db.execute('DELETE FROM submissions WHERE user_id = ?', (user_id,))
-        db.execute('DELETE FROM awareness_data WHERE user_id = ?', (user_id,))
-        db.execute('DELETE FROM admins WHERE user_id = ?', (user_id,))
-        db.execute('DELETE FROM users WHERE id = ?', (user_id,))
-        log_audit(db, session.get('user_id'), 'DELETE', 'users', user_id, 'Deleted user and related data')
-        flash('User and their data deleted', 'success')
-    
-    db.commit()
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/add-user', methods=['POST'])
-@admin_required
-def admin_add_user():
-    """Admin: Add new user with specified role"""
-    username = request.form.get('username', '').strip()
-    email = request.form.get('email', '').strip()
-    password = request.form.get('password', '').strip()
-    role = request.form.get('role', 'user')
-    
-    # Validate inputs
-    if not username or not password:
-        flash('Username and password are required', 'error')
-        return redirect(url_for('admin_panel'))
-    
-    if not validate_password(password):
-        flash('Password must be at least 8 characters and include a letter and a number', 'error')
-        return redirect(url_for('admin_panel'))
-    
-    if role not in ['user', 'admin']:
-        flash('Invalid role specified', 'error')
-        return redirect(url_for('admin_panel'))
-    
-    db = get_db()
-    try:
-        cursor = db.execute(
-            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-            (username, email if email else None, generate_password_hash(password), role)
-        )
-        new_user_id = cursor.lastrowid
-        if role == 'admin':
-            db.execute('INSERT OR IGNORE INTO admins (user_id) VALUES (?)', (new_user_id,))
-        db.commit()
-        log_audit(db, session.get('user_id'), 'INSERT', 'users', new_user_id, f'Created user {username} with role {role}')
-        flash(f'✓ User "{username}" created successfully with role: {role.upper()}', 'success')
-    except sqlite3.IntegrityError as e:
-        if 'username' in str(e):
-            flash('Username already taken', 'error')
-        elif 'email' in str(e):
-            flash('Email already registered', 'error')
-        else:
-            flash('User creation failed', 'error')
-    
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/add-source', methods=['POST'])
-@admin_required
-def admin_add_source():
-    name = request.form.get('name', '').strip()
-    url = request.form.get('url', '').strip()
-    kind = request.form.get('kind', '').strip()
-    if not name or not url or kind not in ['rss', 'json', 'html']:
-        flash('Source name, url, and kind are required', 'error')
-        return redirect(url_for('admin_panel'))
-    db = get_db()
-    db.execute('INSERT INTO external_sources (name, url, kind) VALUES (?, ?, ?)', (name, url, kind))
-    db.commit()
-    log_audit(db, session.get('user_id'), 'INSERT', 'external_sources', None, f'Added source {name}')
-    flash('Source added', 'success')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/refresh-sources', methods=['POST'])
-@admin_required
-def admin_refresh_sources():
-    db = get_db()
-    added = refresh_external_opportunities(db)
-    log_audit(db, session.get('user_id'), 'UPDATE', 'external_sources', None, f'Refreshed sources, added {added} items')
-    flash(f'Refreshed sources. Added {added} items.', 'success')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/approve-opportunity', methods=['POST'])
-@admin_required
-def admin_approve_opportunity():
-    opp_id = request.form.get('opp_id')
-    if not opp_id:
-        flash('Invalid request', 'error')
-        return redirect(url_for('admin_panel'))
-    db = get_db()
-    db.execute('UPDATE external_opportunities SET approved = 1 WHERE id = ?', (opp_id,))
-    opp = db.execute('SELECT * FROM external_opportunities WHERE id = ?', (opp_id,)).fetchone()
-    if opp:
-        preferences = db.execute('SELECT * FROM user_preferences').fetchall()
-        item = dict(opp)
-        for pref in preferences:
-            score = compute_relevance(item, dict(pref))
-            if score >= 2:
-                channels = (pref['alert_channels'] or 'email').split(',')
-                for ch in [c.strip() for c in channels if c.strip()]:
-                    db.execute('''
-                        INSERT OR IGNORE INTO alert_queue
-                        (user_id, channel, source, source_id, title, url)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (pref['user_id'], ch, 'external', item['id'], item['title'], item['url']))
-    db.commit()
-    log_audit(db, session.get('user_id'), 'UPDATE', 'external_opportunities', opp_id, 'Approved opportunity')
-    flash('Opportunity approved', 'success')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/send-alerts', methods=['POST'])
-@admin_required
-def admin_send_alerts():
-    db = get_db()
-    sent = send_pending_alerts(db)
-    log_audit(db, session.get('user_id'), 'UPDATE', 'alert_queue', None, f'Sent {sent} alerts')
-    flash(f'Sent {sent} alerts', 'success')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/backup-db', methods=['POST'])
-@admin_required
-def admin_backup_db():
-    try:
-        dest = backup_database()
-        log_audit(get_db(), session.get('user_id'), 'BACKUP', 'data.db', None, str(dest))
-        flash(f'Backup created: {dest.name}', 'success')
-    except Exception:
-        flash('Backup failed', 'error')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/smtp-test', methods=['POST'])
-@admin_required
-def admin_smtp_test():
-    db = get_db()
-    user_id = session.get('user_id')
-    row = db.execute('SELECT email FROM users WHERE id = ?', (user_id,)).fetchone()
-    email = row['email'] if row else None
-    if not email:
-        flash('No email on your account. Add one to test SMTP.', 'error')
-        return redirect(url_for('admin_panel'))
-    ok, err = send_test_email(email)
-    if ok:
-        flash(f'SMTP test sent to {email}', 'success')
-    else:
-        flash(f'SMTP test failed: {err}', 'error')
-    return redirect(url_for('admin_panel'))
-
-@app.route('/admin/ai-recommendations')
-@admin_required
-def admin_ai_recommendations():
-    """Admin: View AI-powered opportunity recommendations"""
-    db = get_db()
-    
-    # Get all opportunities
-    all_opps = db.execute('SELECT DISTINCT opportunity_name FROM awareness_data ORDER BY opportunity_name').fetchall()
-    
-    recommendations_map = {}
-    for opp in all_opps:
-        opp_name = opp['opportunity_name']
-        # Get similar opportunities
-        similar = find_similar_opportunities(opp_name, db)
-        if similar:
-            recommendations_map[opp_name] = similar
-    
-    return render_template('admin_ai_recommendations.html', recommendations=recommendations_map)
 
 if __name__ == '__main__':
     init_db()
@@ -1968,4 +1819,10 @@ if __name__ == '__main__':
                 time.sleep(EXTERNAL_REFRESH_MINUTES * 60)
         t = threading.Thread(target=_scheduler_worker, daemon=True)
         t.start()
-    app.run(debug=True)
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', '5000'))
+    debug = os.environ.get('FLASK_DEBUG', '1') == '1'
+    app.run(host=host, port=port, debug=debug)
+
+
+
